@@ -279,7 +279,7 @@ export function TopUpDialog({ setDialogOpen }: TopUpDialogProps) {
                     {history.slice(0, 5).map(item => (
                         <TableRow key={item.id}>
                             <TableCell>{format(new Date(item.requestedAt), 'dd/MM/yy HH:mm')}</TableCell>
-                            <TableCell className="font-mono text-right">{item.tokensToAdd.toLocaleString('id-ID')}</TableCell>
+                            <TableCell className="font-mono text-right">{(item.tokensToAdd ?? 'N/A').toLocaleString('id-ID')}</TableCell>
                             <TableCell>{getStatusBadge(item.status)}</TableCell>
                         </TableRow>
                     ))}
