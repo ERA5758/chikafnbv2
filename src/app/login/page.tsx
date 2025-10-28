@@ -28,7 +28,7 @@ import { Form, FormField, FormItem, FormControl, FormMessage } from '@/component
 import { useToast } from '@/hooks/use-toast';
 import { useRouter } from 'next/navigation';
 import { Logo } from '@/components/dashboard/logo';
-import { Loader, Sparkles, LogIn, Megaphone, Eye, EyeOff, MessageSquare, Phone, Building, Utensils, Wrench, Store } from 'lucide-react';
+import { Loader, Sparkles, LogIn, Megaphone, Eye, EyeOff, MessageSquare, Phone, Building, ChefHat, Wrench, Store } from 'lucide-react';
 import { useAuth } from '@/contexts/auth-context';
 import Link from 'next/link';
 import { auth } from '@/lib/firebase';
@@ -266,7 +266,7 @@ export default function LoginPage() {
                         <div>
                             <RadioGroupItem value="F&B" id="type-fnb" className="peer sr-only" />
                             <Label htmlFor="type-fnb" className="flex items-center justify-center gap-2 rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer">
-                                <Utensils className="h-5 w-5"/> F&B
+                                <ChefHat className="h-5 w-5"/> F&amp;B
                             </Label>
                         </div>
                         <div>
