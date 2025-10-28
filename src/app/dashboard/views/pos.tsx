@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -71,6 +70,7 @@ import { useDashboard } from '@/contexts/dashboard-context';
 import { useSearchParams, useRouter } from 'next/navigation';
 import { Switch } from '@/components/ui/switch';
 import type { PointEarningSettings } from '@/lib/types';
+import { getPointEarningSettings } from '@/lib/point-earning-settings';
 import { Textarea } from '@/components/ui/textarea';
 
 
@@ -137,6 +137,12 @@ export default function POS({ onPrintRequest }: POSProps) {
   const tableId = searchParams.get('tableId');
   const tableName = searchParams.get('tableName');
   
+  React.useEffect(() => {
+    if (activeStore?.id) {
+        getPointEarningSettings(activeStore.id).then(setPointSettings);
+    }
+  }, [activeStore?.id]);
+
   // Effect to load order from table if it exists
   React.useEffect(() => {
     if (tableId && tables.length > 0 && products.length > 0) {
