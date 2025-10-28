@@ -1,5 +1,5 @@
 import React from 'react';
-import { UtensilsCrossed } from 'lucide-react';
+import { ChefHat } from 'lucide-react';
 
 
 type LogoProps = {
@@ -10,7 +10,7 @@ export function Logo({ storeName }: LogoProps) {
   return (
     <div className="flex items-center gap-2 text-primary">
       <div className="flex items-center justify-center rounded-md bg-primary/20 p-2">
-        <UtensilsCrossed className="h-6 w-6 text-primary" />
+        <ChefHat className="h-6 w-6 text-primary" />
       </div>
       <div className="flex flex-col group-data-[collapsible=icon]:hidden">
         <span className="font-headline text-xl leading-none tracking-wider text-sidebar-foreground">CHIKA POS F&B</span>

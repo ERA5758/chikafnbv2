@@ -4,7 +4,7 @@
 import * as React from 'react';
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from '@/components/ui/dialog';
 import { Button } from '@/components/ui/button';
-import { QrCode as QrCodeIcon, Download, UtensilsCrossed } from 'lucide-react';
+import { QrCode as QrCodeIcon, Download, ChefHat } from 'lucide-react';
 import { QRCodeCanvas } from 'qrcode.react';
 import html2canvas from 'html2canvas';
 import { useAuth } from '@/contexts/auth-context';
@@ -21,7 +21,7 @@ function QRCodeDisplay({ catalogUrl, storeName }: { catalogUrl: string, storeNam
     return (
         <div className="bg-white text-black p-6 rounded-lg w-[320px] font-sans flex flex-col items-center gap-4 text-center">
              <div className="flex items-center gap-2 text-slate-800">
-                <UtensilsCrossed className="h-8 w-8" />
+                <ChefHat className="h-8 w-8" />
                 <span className="font-headline text-3xl tracking-wider font-bold">{storeName}</span>
             </div>
 
