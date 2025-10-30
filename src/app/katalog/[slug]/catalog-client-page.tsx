@@ -30,42 +30,6 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { Separator } from '@/components/ui/separator';
 import { Textarea } from '@/components/ui/textarea';
 
-
-function NoteDialog({ open, onOpenChange, note, onSave }: { open: boolean, onOpenChange: (open: boolean) => void, note: string, onSave: (newNote: string) => void }) {
-    const [currentNote, setCurrentNote] = React.useState(note);
-
-    React.useEffect(() => {
-        if(open) {
-            setCurrentNote(note);
-        }
-    }, [open, note]);
-
-    const handleSave = () => {
-        onSave(currentNote);
-        onOpenChange(false);
-    }
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Tambah Catatan</DialogTitle>
-                </DialogHeader>
-                <Textarea 
-                    value={currentNote}
-                    onChange={(e) => setCurrentNote(e.target.value)}
-                    placeholder="Contoh: ekstra pedas, tanpa gula, dll."
-                    rows={4}
-                />
-                <DialogFooter>
-                    <Button onClick={handleSave}>Simpan Catatan</Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
-
-
 function groupProducts(products: Product[]): Record<string, Product[]> {
     return products.reduce((acc, product) => {
         const category = product.category || 'Lainnya';
@@ -287,43 +251,88 @@ function OrderStatusCard({ order, onComplete }: { order: TableOrder, onComplete:
     )
 }
 
-type CatalogClientPageProps = {
-  slug: string;
-  initialData: {
-    store: Store | null;
-    products: Product[];
-    promotions: RedemptionOption[];
-    error?: string;
-  };
-};
+function NoteDialog({ open, onOpenChange, note, onSave }: { open: boolean, onOpenChange: (open: boolean) => void, note: string, onSave: (newNote: string) => void }) {
+    const [currentNote, setCurrentNote] = React.useState(note);
 
-export default function CatalogClientPage({ slug, initialData }: CatalogClientPageProps) {
+    React.useEffect(() => {
+        if(open) {
+            setCurrentNote(note);
+        }
+    }, [open, note]);
+
+    const handleSave = () => {
+        onSave(currentNote);
+        onOpenChange(false);
+    }
+
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Tambah Catatan</DialogTitle>
+                </DialogHeader>
+                <Textarea 
+                    value={currentNote}
+                    onChange={(e) => setCurrentNote(e.target.value)}
+                    placeholder="Contoh: ekstra pedas, tanpa gula, dll."
+                    rows={4}
+                />
+                <DialogFooter>
+                    <Button onClick={handleSave}>Simpan Catatan</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    );
+}
+
+export default function CatalogPage() {
+    const params = useParams();
+    const slug = params.slug as string;
     const { toast } = useToast();
-    const { store, products, promotions, error } = initialData;
-    
-    // --- AI Chat State ---
+
+    const [data, setData] = React.useState<{
+        store: Store | null;
+        products: Product[];
+        promotions: RedemptionOption[];
+        error?: string;
+    } | null>(null);
+    const [isLoading, setIsLoading] = React.useState(true);
+
     const [isChatOpen, setIsChatOpen] = React.useState(false);
     const [initialChatQuestion, setInitialChatQuestion] = React.useState<string | null>(null);
     const [currentProductContext, setCurrentProductContext] = React.useState<ProductInfo | null>(null);
-
     const [selectedCategory, setSelectedCategory] = React.useState<string | null>(null);
     const [cart, setCart] = React.useState<CartItem[]>([]);
     const [isSubmittingOrder, setIsSubmittingOrder] = React.useState(false);
-    
-    // --- Note Dialog State ---
     const [noteProduct, setNoteProduct] = React.useState<CartItem | null>(null);
-    
-    // --- Customer Auth State ---
     const [isAuthDialogOpen, setIsAuthDialogOpen] = React.useState(false);
     const [loggedInCustomer, setLoggedInCustomer] = React.useState<Customer | null>(null);
-    const sessionKey = `chika-customer-session-${slug}`;
-    
-    // --- Order Status State ---
     const [activeOrder, setActiveOrder] = React.useState<TableOrder | null>(null);
+
+    const sessionKey = `chika-customer-session-${slug}`;
     const activeOrderKey = `chika-active-order-${slug}`;
 
     React.useEffect(() => {
-        // This effect runs only on the client
+        const fetchData = async () => {
+            setIsLoading(true);
+            try {
+                const response = await fetch(`/api/catalog-data?slug=${slug}`);
+                const result = await response.json();
+                if (!response.ok) {
+                    throw new Error(result.error || 'Gagal memuat data katalog.');
+                }
+                setData(result);
+            } catch (err) {
+                setData({ store: null, products: [], promotions: [], error: (err as Error).message });
+            } finally {
+                setIsLoading(false);
+            }
+        };
+
+        if (slug) {
+            fetchData();
+        }
+
         const savedSession = localStorage.getItem(sessionKey);
         if (savedSession) {
             try {
@@ -340,8 +349,9 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
                 localStorage.removeItem(activeOrderKey);
             }
         }
-    }, [sessionKey, activeOrderKey]);
+    }, [slug, sessionKey, activeOrderKey]);
 
+    const { store, products, promotions, error } = data || { store: null, products: [], promotions: [], error: undefined };
     
     const {
         cartSubtotal,
@@ -491,11 +501,13 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
     }
 
     const categories = React.useMemo(() => {
+        if (!products) return [];
         const uniqueCategories = new Set(products.map(p => p.category));
         return ['Semua', ...Array.from(uniqueCategories)];
     }, [products]);
     
     const filteredProducts = React.useMemo(() => {
+        if (!products) return {};
         if (!selectedCategory || selectedCategory === 'Semua') {
             return groupProducts(products);
         }
@@ -504,6 +516,14 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
         };
     }, [products, selectedCategory]);
 
+    if (isLoading) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-background">
+          <Loader className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      );
+    }
+    
     if (error || !store) {
         return (
             <div className="flex min-h-screen items-center justify-center bg-secondary p-4">
@@ -567,10 +587,10 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
                  {activeOrder ? (
                     <OrderStatusCard order={activeOrder} onComplete={handleCompleteOrder} />
                  ) : (
-                    <PromotionSection promotions={promotions} />
+                    promotions && <PromotionSection promotions={promotions} />
                  )}
                  
-                {products.length > 0 && (
+                {products && products.length > 0 && (
                     <div className="mb-8">
                         <ScrollArea className="w-full whitespace-nowrap">
                              <div className="flex space-x-2 pb-4">
@@ -589,7 +609,7 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
                     </div>
                 )}
 
-                 {products.length > 0 ? (
+                 {products && products.length > 0 ? (
                     <div className="space-y-12">
                         {Object.entries(filteredProducts).map(([category, productsInCategory]) => (
                             <section key={category} id={category.replace(/\s+/g, '-')}>
@@ -707,15 +727,15 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
                             <span className="text-muted-foreground">Subtotal</span>
                             <span>Rp {cartSubtotal.toLocaleString('id-ID')}</span>
                         </div>
-                         {taxAmount > 0 && (
+                         {taxAmount > 0 && store?.financialSettings?.taxPercentage && (
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground flex items-center gap-1"><Percent className="h-3 w-3"/> Pajak ({store.financialSettings?.taxPercentage}%)</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><Percent className="h-3 w-3"/> Pajak ({store.financialSettings.taxPercentage}%)</span>
                                 <span>Rp {taxAmount.toLocaleString('id-ID')}</span>
                             </div>
                         )}
-                        {serviceFeeAmount > 0 && (
+                        {serviceFeeAmount > 0 && store?.financialSettings?.serviceFeePercentage && (
                             <div className="flex justify-between">
-                                <span className="text-muted-foreground flex items-center gap-1"><HandCoins className="h-3 w-3"/> Biaya Layanan ({store.financialSettings?.serviceFeePercentage}%)</span>
+                                <span className="text-muted-foreground flex items-center gap-1"><HandCoins className="h-3 w-3"/> Biaya Layanan ({store.financialSettings.serviceFeePercentage}%)</span>
                                 <span>Rp {serviceFeeAmount.toLocaleString('id-ID')}</span>
                             </div>
                         )}
@@ -778,7 +798,7 @@ export default function CatalogClientPage({ slug, initialData }: CatalogClientPa
             <NoteDialog
                 open={!!noteProduct}
                 onOpenChange={() => setNoteProduct(null)}
-                note={note.notes || ''}
+                note={noteProduct.notes || ''}
                 onSave={(newNote) => handleNoteSave(noteProduct.productId, newNote)}
             />
         )}
