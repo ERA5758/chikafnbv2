@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next';
-import { getFirebaseAdmin } from './lib/server/firebase-admin';
+import { getFirebaseAdmin } from '@/lib/server/firebase-admin';
 
 // This is a dynamic sitemap. It's generated on-demand when a search engine requests it.
 // It fetches all active store catalogs and creates a sitemap entry for each.
