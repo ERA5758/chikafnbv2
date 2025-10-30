@@ -10,7 +10,7 @@ type CatalogPageProps = {
 
 // --- Data Fetching on the Server ---
 async function getCatalogData(slug: string): Promise<{
-  store: Store;
+  store: Store | null;
   products: Product[];
   promotions: RedemptionOption[];
   error?: string;
@@ -91,7 +91,58 @@ export async function generateMetadata({ params }: CatalogPageProps): Promise<Me
 export default async function CatalogPage({ params }: CatalogPageProps) {
   const { slug } = params;
   const initialData = await getCatalogData(slug);
+  const { store, products } = initialData;
 
-  // Pass the server-fetched data to the client component
-  return <CatalogClientPage slug={slug} initialData={initialData} />;
+  // Structured Data (JSON-LD) for Rich Snippets
+  const generateStructuredData = () => {
+    if (!store || !products || products.length === 0) {
+      return null;
+    }
+    
+    const menuItems = products.map(product => ({
+      "@type": "MenuItem",
+      "name": product.name,
+      "description": product.description || product.name,
+      "image": product.imageUrl,
+      "offers": {
+        "@type": "Offer",
+        "price": product.price.toString(),
+        "priceCurrency": "IDR"
+      }
+    }));
+
+    const structuredData = {
+      "@context": "https://schema.org",
+      "@type": "Restaurant",
+      "name": store.name,
+      "image": store.logoUrl || 'https://picsum.photos/seed/chika/1200/630',
+      "description": store.description || `Menu lengkap dari ${store.name}`,
+      "address": {
+        "@type": "PostalAddress",
+        "addressLocality": store.location,
+        "addressCountry": "ID"
+      },
+      "servesCuisine": store.businessDescription || "F&B",
+      "hasMenu": {
+        "@type": "Menu",
+        "name": `Menu ${store.name}`,
+        "hasMenuItem": menuItems
+      }
+    };
+    return JSON.stringify(structuredData);
+  }
+
+  const jsonLd = generateStructuredData();
+
+  return (
+    <>
+      {jsonLd && (
+         <script
+          type="application/ld+json"
+          dangerouslySetInnerHTML={{ __html: jsonLd }}
+        />
+      )}
+      <CatalogClientPage slug={slug} initialData={initialData} />
+    </>
+  );
 }
