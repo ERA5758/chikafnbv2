@@ -13,8 +13,8 @@ export type BankAccountSettings = {
 // Default settings if the document doesn't exist in Firestore.
 export const defaultBankAccountSettings: BankAccountSettings = {
     bankName: 'BANK BCA',
-    accountNumber: '1234567890',
-    accountHolder: 'PT. CHIKA TEKNOLOGI',
+    accountNumber: '6225089802',
+    accountHolder: 'PT. ERA MAJU MAPAN BERSAMA PRADANA',
 };
 
 /**
