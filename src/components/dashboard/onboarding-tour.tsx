@@ -1,136 +1,88 @@
-
 'use client';
 
 import * as React from 'react';
-import { ShepherdTour, ShepherdTourContext, Tour } from 'react-shepherd';
-import 'shepherd.js/dist/css/shepherd.css';
-import { useAuth } from '@/contexts/auth-context';
+import Joyride, { type Step } from '@p-thomas/react-joyride';
 import { useDashboard } from '@/contexts/dashboard-context';
 import { useTheme } from 'next-themes';
 import { tourSteps as steps } from '@/lib/tour-steps';
 import { useIsMobile } from '@/hooks/use-mobile';
-import { Button } from '../ui/button';
-
-// Custom CSS to override Shepherd styles and make it theme-aware
-const tourStyles = `
-  .shepherd-element {
-    background: hsl(var(--card));
-    border-radius: var(--radius);
-    border: 1px solid hsl(var(--border));
-    box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
-  }
-  .shepherd-header {
-    background: hsl(var(--card));
-    padding: 0.75rem 1rem;
-    border-bottom: 1px solid hsl(var(--border));
-  }
-  .shepherd-title {
-    color: hsl(var(--card-foreground));
-    font-weight: 600;
-  }
-  .shepherd-text {
-    color: hsl(var(--muted-foreground));
-    padding: 1rem;
-  }
-  .shepherd-button {
-    padding: 0.5rem 1rem;
-    border-radius: var(--radius);
-    font-weight: 500;
-    transition: background-color 0.2s;
-  }
-  .shepherd-button-primary {
-    background: hsl(var(--primary));
-    color: hsl(var(--primary-foreground));
-  }
-  .shepherd-button-primary:hover {
-    background: hsl(var(--primary)) / 0.9;
-  }
-  .shepherd-button-secondary {
-    background: hsl(var(--secondary));
-    color: hsl(var(--secondary-foreground));
-  }
-   .shepherd-button-secondary:hover {
-    background: hsl(var(--secondary)) / 0.8;
-  }
-  .shepherd-arrow::before {
-    background: hsl(var(--card));
-  }
-`;
-
-function TourController() {
-  const { runTour, setRunTour } = useDashboard();
-  const tour = React.useContext(ShepherdTourContext);
-
-  React.useEffect(() => {
-    if (runTour && tour) {
-      tour.start();
-      setRunTour(false);
-    }
-  }, [runTour, tour, setRunTour]);
-  
-  React.useEffect(() => {
-    if (tour) {
-      const onComplete = () => {
-        localStorage.setItem('chika-tour-viewed', 'true');
-        setRunTour(false);
-      }
-      const onCancel = () => {
-        localStorage.setItem('chika-tour-viewed', 'true');
-        setRunTour(false);
-      }
-
-      tour.on('complete', onComplete);
-      tour.on('cancel', onCancel);
-
-      return () => {
-        tour.off('complete', onComplete);
-        tour.off('cancel', onCancel);
-      }
-    }
-  }, [tour, setRunTour]);
-
-  return null;
-}
+import { useAuth } from '@/contexts/auth-context';
 
 export function OnboardingTour() {
-  const { currentUser } = useAuth();
-  const { dashboardData, setRunTour } = useDashboard();
+  const { runTour, setRunTour } = useDashboard();
+  const { currentUser, dashboardData } = useAuth(); // useAuth to get user info
   const isMobile = useIsMobile();
-  const { theme } = useTheme();
+  const { resolvedTheme } = useTheme();
+  
+  // Ref to prevent double-running effect in React 18 Strict Mode
+  const effectRan = React.useRef(false);
 
   React.useEffect(() => {
-    const isNewAdmin =
-      currentUser?.role === 'admin' &&
-      dashboardData.transactions.length === 0;
+    // Only run this logic on the client
+    if (typeof window !== 'undefined') {
+      const isNewAdmin =
+        currentUser?.role === 'admin' &&
+        dashboardData.transactions.length === 0;
 
-    const tourViewed = localStorage.getItem('chika-tour-viewed');
+      const tourViewed = localStorage.getItem('chika-tour-viewed');
 
-    if (isNewAdmin && !tourViewed) {
-      setTimeout(() => setRunTour(true), 1500);
+      // Check if effect has already run in development
+      if (process.env.NODE_ENV === 'development' && effectRan.current === true) {
+        return;
+      }
+      
+      if (isNewAdmin && !tourViewed) {
+        // Delay starting the tour to allow the UI to settle
+        const timer = setTimeout(() => {
+          setRunTour(true);
+        }, 1500);
+        return () => clearTimeout(timer);
+      }
+
+      // Mark that the effect has run
+      return () => {
+        effectRan.current = true;
+      };
     }
   }, [currentUser, dashboardData.transactions, setRunTour]);
+
 
   if (isMobile) {
     return null;
   }
-
-  const tourOptions: Tour.TourOptions = {
-    defaultStepOptions: {
-      cancelIcon: {
-        enabled: true,
-      },
-      classes: 'shadow-md bg-background border',
-      scrollTo: { behavior: 'smooth', block: 'center' },
-    },
-    useModalOverlay: true,
+  
+  const handleJoyrideCallback = (data: any) => {
+    const { status } = data;
+    const finishedStatuses: string[] = ['finished', 'skipped'];
+    if (finishedStatuses.includes(status)) {
+        localStorage.setItem('chika-tour-viewed', 'true');
+        setRunTour(false);
+    }
   };
 
   return (
-    <>
-      <style>{tourStyles}</style>
-      <ShepherdTour steps={steps} tourOptions={tourOptions}>
-        <TourController />
-      </ShepherdTour>
-    </>
+    <Joyride
+      run={runTour}
+      steps={steps}
+      continuous
+      showProgress
+      showSkipButton
+      callback={handleJoyrideCallback}
+      styles={{
+        options: {
+          arrowColor: 'hsl(var(--card))',
+          backgroundColor: 'hsl(var(--card))',
+          primaryColor: 'hsl(var(--primary))',
+          textColor: 'hsl(var(--foreground))',
+          zIndex: 1000,
+        },
+        buttonClose: {
+            color: 'hsl(var(--muted-foreground))',
+        },
+        buttonBack: {
+            color: 'hsl(var(--muted-foreground))',
+        }
+      }}
+    />
   );
 }

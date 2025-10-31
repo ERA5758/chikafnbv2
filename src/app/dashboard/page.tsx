@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -34,7 +33,7 @@ import { useToast } from '@/hooks/use-toast';
 import { auth } from '@/lib/firebase';
 import { OrderReadyDialog } from '@/components/dashboard/order-ready-dialog';
 import { MiniStickerDialog } from '@/components/dashboard/mini-sticker-dialog';
-import { OnboardingTour } from '@/components/dashboard/onboarding-tour';
+// import { OnboardingTour } from '@/components/dashboard/onboarding-tour';
 
 function CheckoutReceiptDialog({ transaction, users, open, onOpenChange }: { transaction: Transaction | null; users: User[]; open: boolean; onOpenChange: (open: boolean) => void }) {
     if (!transaction) return null;
@@ -158,7 +157,7 @@ function DashboardContent() {
       </SidebarInset>
       <div className="printable-area" aria-hidden="true"></div>
       
-       <OnboardingTour />
+       {/* <OnboardingTour /> */}
 
        <CheckoutReceiptDialog
             transaction={transactionToPrint}
