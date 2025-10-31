@@ -90,10 +90,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startTour = useCallback(() => {
-    // Reset the viewed flag to allow re-running the tour
-    localStorage.removeItem('chika-tour-viewed');
-    // A small delay to ensure the UI is ready
-    setTimeout(() => setRunTour(true), 100);
+    // Logic to start the tour, currently disabled
+    // localStorage.removeItem('chika-tour-viewed');
+    // setTimeout(() => setRunTour(true), 100);
   }, []);
 
 

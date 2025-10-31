@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
+import Joyride, { CallBackProps, STATUS, Step } from '@p-thomas/react-joyride';
 import { useAuth } from '@/contexts/auth-context';
 import { useDashboard } from '@/contexts/dashboard-context';
 import { useTheme } from 'next-themes';
