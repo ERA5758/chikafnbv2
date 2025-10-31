@@ -11,11 +11,9 @@ import { useIsMobile } from '@/hooks/use-mobile';
 
 export function OnboardingTour() {
   const { currentUser } = useAuth();
-  const { dashboardData } = useDashboard();
+  const { dashboardData, runTour, setRunTour } = useDashboard();
   const { theme } = useTheme();
   const isMobile = useIsMobile();
-  
-  const [runTour, setRunTour] = React.useState(false);
 
   React.useEffect(() => {
     // Check if the user is a new admin
@@ -30,7 +28,7 @@ export function OnboardingTour() {
       // Small delay to ensure the UI is fully rendered
       setTimeout(() => setRunTour(true), 1500);
     }
-  }, [currentUser, dashboardData.transactions]);
+  }, [currentUser, dashboardData.transactions, setRunTour]);
 
   const handleJoyrideCallback = (data: CallBackProps) => {
     const { status } = data;

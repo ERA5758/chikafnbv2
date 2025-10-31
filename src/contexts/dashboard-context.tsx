@@ -20,6 +20,8 @@ const defaultFeeSettings: TransactionFeeSettings = {
   catalogMonthlyFee: 250,
   catalogSixMonthFee: 1400,
   catalogYearlyFee: 2500,
+  catalogTrialFee: 55,
+  catalogTrialDurationMonths: 1,
   taxPercentage: 0,
   serviceFeePercentage: 0,
 };
@@ -40,6 +42,9 @@ interface DashboardContextType {
   isLoading: boolean;
   refreshData: () => void;
   playNotificationSound: () => void;
+  runTour: boolean;
+  setRunTour: React.Dispatch<React.SetStateAction<boolean>>;
+  startTour: () => void;
 }
 
 const DashboardContext = createContext<DashboardContextType | undefined>(undefined);
@@ -78,10 +83,19 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const [challengePeriods, setChallengePeriods] = useState<ChallengePeriod[]>([]);
   const [feeSettings, setFeeSettings] = useState<TransactionFeeSettings>(defaultFeeSettings);
   const [isLoading, setIsLoading] = useState(true);
+  const [runTour, setRunTour] = useState(false);
   
   const playNotificationSound = useCallback(() => {
     notificationAudioRef.current?.play().catch(e => console.error("Audio playback failed:", e));
   }, []);
+
+  const startTour = useCallback(() => {
+    // Reset the viewed flag to allow re-running the tour
+    localStorage.removeItem('chika-tour-viewed');
+    // A small delay to ensure the UI is ready
+    setTimeout(() => setRunTour(true), 100);
+  }, []);
+
 
   const refreshData = useCallback(async () => {
     if (!currentUser) return;
@@ -254,6 +268,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     isLoading,
     refreshData,
     playNotificationSound,
+    runTour,
+    setRunTour,
+    startTour,
   };
 
   return (
