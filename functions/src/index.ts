@@ -4,9 +4,9 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import * as logger from "firebase-functions/logger";
 import { getFirestore, FieldValue } from "firebase-admin/firestore";
 import { initializeApp } from "firebase-admin/app";
-import { format, subDays } from "date-fns";
+import { subDays } from "date-fns";
+import { format } from "date-fns/format";
 import { id as idLocale } from "date-fns/locale";
-import { URLSearchParams } from "url";
 
 // Initialize Firebase Admin SDK
 initializeApp();
@@ -270,10 +270,9 @@ export const sendDailySalesSummary = onSchedule({
 
             // Calculate date range for yesterday
             const today = new Date();
-            const yesterday = new Date(today);
-            yesterday.setDate(today.getDate() - 1);
+            const yesterday = subDays(today, 1);
             const startOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 0, 0, 0);
-            const endOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 59, 59);
+            const endOfDay = new Date(yesterday.getFullYear(), yesterday.getMonth(), yesterday.getDate(), 23, 5, 59);
 
             const transactionsSnapshot = await db.collectionGroup('transactions')
                 .where('storeId', '==', storeId)
@@ -343,13 +342,22 @@ export const sendInactiveTenantFollowUp = onSchedule({
             const storeId = storeDoc.id;
 
             // Determine the last transaction date
-            const lastTransactionDate = store.lastTransactionAt ? new Date(store.lastTransactionAt.toDate()) : null;
+            const lastTransactionDate = store.lastTransactionAt?.toDate();
 
-            // Skip if there's a recent transaction or if there's a recent follow-up
+            // Skip if there's a recent transaction
             if (lastTransactionDate && lastTransactionDate > sevenDaysAgo) {
                 return;
             }
-            if (store.lastFollowUpSentAt && new Date(store.lastFollowUpSentAt.toDate()) > sevenDaysAgo) {
+            
+            // Also skip if there has never been a transaction and the store was created less than a week ago
+            const createdAtDate = store.createdAt?.toDate();
+            if (!lastTransactionDate && createdAtDate && createdAtDate > sevenDaysAgo) {
+                return;
+            }
+
+            // Skip if a follow-up was sent recently
+            const lastFollowUpDate = store.lastFollowUpSentAt?.toDate();
+            if (lastFollowUpDate && lastFollowUpDate > sevenDaysAgo) {
                 return;
             }
 
@@ -369,35 +377,34 @@ export const sendInactiveTenantFollowUp = onSchedule({
             const adminName = adminData.name || 'Admin';
             const adminWhatsapp = adminData.whatsapp;
 
-            // Call the AI flow (simulated here with a fetch to the deployed API route)
-            // In a real monorepo setup, you could import the function directly.
-            const fetch = (await import('node-fetch')).default;
+            const appUrl = "https://pos.era5758.co.id";
             
-            // This needs to be the actual URL of your deployed app
-            const appUrl = process.env.NEXT_PUBLIC_BASE_URL || "http://localhost:9002";
+            const aiPayload = {
+                adminName: adminName,
+                storeName: store.name,
+                businessDescription: store.businessDescription || 'bisnis Anda',
+            };
 
+            logger.info(`Calling AI flow for store ${store.name} with payload:`, aiPayload);
+
+            const fetch = (await import('node-fetch')).default;
             const aiResponse = await fetch(`${appUrl}/api/ai/inactive-tenant-follow-up`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    storeName: store.name,
-                    adminName: adminName,
-                    businessDescription: store.businessDescription || 'bisnis Anda',
-                    daysInactive: 7,
-                }),
+                body: JSON.stringify(aiPayload),
             });
             
             if (!aiResponse.ok) {
                 const errorText = await aiResponse.text();
-                throw new Error(`AI flow failed for store ${storeId}: ${errorText}`);
+                throw new Error(`AI flow API call failed for store ${storeId}: ${aiResponse.status} ${errorText}`);
             }
 
-            const { followUpMessage } = await aiResponse.json() as { followUpMessage: string };
+            const result = await aiResponse.json() as { whatsappMessage: string };
 
             // Queue the message
             await db.collection('whatsappQueue').add({
                 to: adminWhatsapp,
-                message: followUpMessage,
+                message: result.whatsappMessage,
                 isGroup: false,
                 storeId: storeId, // Use store-specific device ID if available
                 createdAt: FieldValue.serverTimestamp(),
@@ -408,41 +415,13 @@ export const sendInactiveTenantFollowUp = onSchedule({
                 lastFollowUpSentAt: FieldValue.serverTimestamp(),
             });
 
-            logger.info(`Queued inactive follow-up for ${store.name} to ${adminName}.`);
+            logger.info(`Successfully queued inactive follow-up for ${store.name} to ${adminName}.`);
         });
 
         await Promise.all(promises);
-        logger.info("Weekly check for inactive tenants finished.");
+        logger.info("Weekly check for inactive tenants finished successfully.");
 
     } catch (error) {
         logger.error("Error in sendInactiveTenantFollowUp scheduled function:", error);
     }
 });
-  
-```</content>
-  </change>
-  <change>
-    <file>src/app/api/ai/inactive-tenant-follow-up/route.ts</file>
-    <content><![CDATA[
-import { NextRequest, NextResponse } from 'next/server';
-import { getInactiveTenantFollowUp, InactiveTenantFollowUpInput } from '@/ai/flows/inactive-tenant-follow-up';
-
-export async function POST(request: NextRequest) {
-  try {
-    const input: InactiveTenantFollowUpInput = await request.json();
-
-    const { storeName, adminName, businessDescription, daysInactive } = input;
-
-    if (!storeName || !adminName || !businessDescription || !daysInactive) {
-      return NextResponse.json({ error: 'Missing required input parameters' }, { status: 400 });
-    }
-
-    const result = await getInactiveTenantFollowUp(input);
-    return NextResponse.json(result);
-
-  } catch (error) {
-    console.error('Error in inactiveTenantFollowUp API route:', error);
-    const errorMessage = error instanceof Error ? error.message : 'Failed to generate follow-up message';
-    return NextResponse.json({ error: errorMessage }, { status: 500 });
-  }
-}

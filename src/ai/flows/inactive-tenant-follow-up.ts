@@ -1,71 +1,70 @@
-
-'use server';
-/**
- * @fileOverview An AI agent for generating proactive follow-up messages to inactive tenants.
- *
- * - getInactiveTenantFollowUp - A function that generates a personalized message.
- * - InactiveTenantFollowUpInput - The input type for the function.
- * - InactiveTenantFollowUpOutput - The return type for the function.
- */
-
+import { z } from 'zod';
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
 
 export const InactiveTenantFollowUpInputSchema = z.object({
-  storeName: z.string().describe("The tenant's store name."),
-  adminName: z.string().describe("The name of the store's admin."),
-  businessDescription: z.string().describe('A brief description of the business (e.g., "kafe", "restoran", "vape store").'),
-  daysInactive: z.number().describe('The number of days since the last transaction.'),
+  adminName: z.string().describe('Nama lengkap admin atau pemilik tenant'),
+  storeName: z.string().describe('Nama toko atau bisnis tenant'),
+  businessDescription: z.string().describe('Deskripsi singkat jenis usaha tenant (contoh: Kafe, Restoran Cepat Saji, Warung Kopi)'),
 });
+
 export type InactiveTenantFollowUpInput = z.infer<typeof InactiveTenantFollowUpInputSchema>;
 
 export const InactiveTenantFollowUpOutputSchema = z.object({
-  followUpMessage: z.string().describe('A friendly, concise, and proactive follow-up message in Indonesian, formatted for WhatsApp.'),
-});
-export type InactiveTenantFollowUpOutput = z.infer<typeof InactiveTenantFollowUpOutputSchema>;
-
-export async function getInactiveTenantFollowUp(
-  input: InactiveTenantFollowUpInput
-): Promise<InactiveTenantFollowUpOutput> {
-  return inactiveTenantFollowUpFlow(input);
-}
-
-const prompt = ai.definePrompt({
-  name: 'inactiveTenantFollowUpPrompt',
-  input: { schema: InactiveTenantFollowUpInputSchema },
-  output: { schema: InactiveTenantFollowUpOutputSchema },
-  prompt: `Anda adalah Chika, seorang konsultan bisnis yang proaktif dan ramah dari Chika POS.
-Tugas Anda adalah membuat pesan WhatsApp singkat untuk menyapa admin toko yang sudah tidak aktif bertransaksi selama {{daysInactive}} hari.
-
-Tujuan pesan ini BUKAN untuk menegur, tetapi untuk menyemangati dan memberikan ide agar mereka kembali aktif. Pesan harus personal, relevan dengan jenis bisnisnya, dan diakhiri dengan ajakan untuk mencoba fitur Chika POS.
-
-Gunakan format Markdown WhatsApp (misal: *teks tebal*).
-
-Data Tenant:
-- Nama Admin: {{adminName}}
-- Nama Toko: {{storeName}}
-- Jenis Usaha: {{businessDescription}}
-
-Contoh Ide Pesan (gunakan sebagai inspirasi, jangan ditiru mentah-mentah):
-- Untuk Kafe: Sarankan untuk membuat promo "Happy Hour" di sore hari atau bundling Kopi + Cemilan.
-- Untuk Restoran: Usulkan untuk mencoba fitur 'AI Deskripsi Produk' untuk menu yang kurang populer.
-- Untuk Bisnis Apapun: Ingatkan tentang fitur 'Generator Tantangan Karyawan' untuk memotivasi tim di awal minggu.
-
-Buat satu pesan WhatsApp yang unik, ramah, dan solutif. Awali dengan sapaan "Halo Kak *{{adminName}}* dari *{{storeName}}*!".`,
+  whatsappMessage: z.string().describe('Pesan WhatsApp yang personal dan proaktif'),
 });
 
 export const inactiveTenantFollowUpFlow = ai.defineFlow(
   {
-    name: 'inactiveTenantFollowUpFlow',
+    name: 'inactiveTenantFollowUp',
     inputSchema: InactiveTenantFollowUpInputSchema,
     outputSchema: InactiveTenantFollowUpOutputSchema,
   },
   async (input) => {
-    const { output } = await prompt(input, { model: 'openai/gpt-4o' });
+    const { adminName, storeName } = input;
 
-    if (!output) {
-      throw new Error('AI did not return a valid follow-up message.');
-    }
-    return output;
+    const prompt = `
+      **PERAN DAN TUJUAN UTAMA:**
+      Anda adalah "Chika", seorang business growth assistant dari Chika POS.
+      Tugas Anda adalah membuat satu pesan WhatsApp yang sangat persuasif untuk admin tenant yang sudah tidak aktif (tidak ada transaksi) selama seminggu.
+      Tujuan utama pesan ini adalah untuk mendorong mereka mengklaim promo "Katalog Digital Gratis 1 Bulan" yang akan segera berakhir.
+
+      **INFORMASI KUNCI UNTUK DISAMPAIKAN:**
+      1.  **Fitur Unggulan:** "Katalog Digital Publik dengan Asisten AI". Ini adalah Website Toko Online instan untuk bisnis mereka.
+      2.  **Manfaat Utama:**
+          - Menghemat biaya cetak menu/katalog fisik.
+          - Memberi citra brand yang modern dan inovatif.
+          - Pelanggan mereka akan dibantu oleh Asisten Menu AI yang siap melayani 24/7.
+      3.  **PROMO SPESIAL (Hook Utama):** Tenant berhak mendapatkan *GRATIS PENGGUNAAN KATALOG SELAMA 1 BULAN PERTAMA* sejak pendaftaran.
+      4.  **CTA (Call to Action) Jelas:** Promo ini bisa langsung di-klaim melalui halaman *Admin Overview* di dasbor Chika POS.
+
+      **ATURAN PENTING:**
+      - Pesan HARUS dalam Bahasa Indonesia yang antusias, persuasif, dan menciptakan sedikit urgensi (misal: "jangan sampai hangus").
+      - Maksimal 4-5 kalimat.
+      - Gunakan format Markdown WhatsApp (misal: *teks tebal*).
+      - Jangan terdengar seperti robot. Buat seolah-olah Anda benar-benar peduli dengan pertumbuhan bisnis mereka.
+
+      **Data Tenant:**
+      - Nama Admin: ${adminName}
+      - Nama Toko: ${storeName}
+
+      **Contoh Struktur Pesan:**
+      - Sapaan hangat.
+      - Pengingat tentang hak promo gratis 1 bulan untuk Katalog Digital yang mungkin belum mereka sadari.
+      - Penjelasan singkat manfaatnya (seperti punya website toko online sendiri + asisten AI).
+      - Ajakan jelas untuk segera klaim di halaman Admin Overview sebelum promonya hangus.
+
+      Buat satu pesan WhatsApp yang paling efektif. Awali dengan sapaan "Halo Kak *${adminName}* dari *${storeName}*!".`;
+
+    const llmResponse = await ai.generate({
+      prompt: prompt,
+      model: 'openai/gpt-4o',
+      output: {
+        format: 'text',
+      },
+    });
+
+    return {
+      whatsappMessage: llmResponse.text(),
+    };
   }
 );

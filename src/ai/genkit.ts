@@ -1,4 +1,3 @@
-
 import { genkit } from 'genkit';
 import type { Plugin } from '@genkit-ai/core'; // Corrected import
 import { openAI } from 'genkitx-openai';
