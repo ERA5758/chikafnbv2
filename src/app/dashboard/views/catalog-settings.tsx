@@ -81,7 +81,7 @@ export default function CatalogSettings() {
     }
   };
 
-  const handleSubscription = async (planId: number | 'trial') => {
+  const handleSubscription = async (planId: number) => {
     try {
         const idToken = await auth.currentUser?.getIdToken(true);
         if (!idToken || !activeStore) {
@@ -109,19 +109,16 @@ export default function CatalogSettings() {
             description: `Katalog Digital Premium Anda telah diperpanjang.`,
         });
 
-        // Update context immediately with the new expiry date from the API
         if (result.newExpiryDate) {
             updateActiveStore({ 
                 ...activeStore, 
                 catalogSubscriptionExpiry: result.newExpiryDate,
                 pradanaTokenBalance: result.newBalance,
-                hasUsedCatalogTrial: planId === 'trial' ? true : activeStore.hasUsedCatalogTrial,
             });
         } else {
-            // Fallback to refresh if API response is not as expected
             refreshActiveStore(); 
         }
-
+        return result;
     } catch (error) {
         console.error(`Subscription error:`, error);
         throw error; // Re-throw for AIConfirmationDialog
@@ -150,7 +147,6 @@ export default function CatalogSettings() {
 
   const expiryDate = activeStore?.catalogSubscriptionExpiry ? new Date(activeStore.catalogSubscriptionExpiry) : null;
   const isSubscriptionActive = expiryDate ? expiryDate > new Date() : false;
-  const hasUsedTrial = activeStore?.hasUsedCatalogTrial ?? false;
   const catalogUrl = typeof window !== 'undefined' && activeStore.catalogSlug 
     ? `${window.location.origin}/katalog/${activeStore.catalogSlug}` 
     : '';
@@ -220,29 +216,6 @@ export default function CatalogSettings() {
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex flex-col items-stretch gap-6 md:px-20 lg:px-40">
-                {!hasUsedTrial && (
-                    <Card className='flex-1'>
-                        <CardHeader className="text-center">
-                            <CardTitle className="text-xl flex items-center justify-center gap-2 text-accent"><SparklesIcon /> Coba Dulu</CardTitle>
-                            <CardDescription>Penawaran Pertama Kali</CardDescription>
-                        </CardHeader>
-                        <CardContent className="text-center">
-                            <p className="text-4xl font-bold">{feeSettings.catalogTrialFee} <span className="text-base font-normal text-muted-foreground">Token/bln</span></p>
-                        </CardContent>
-                        <CardFooter>
-                            <AIConfirmationDialog
-                            featureName="Paket Coba Pertama"
-                            featureDescription={`Anda akan mengaktifkan langganan Katalog Digital selama 1 bulan dengan harga spesial.`}
-                            feeSettings={feeSettings}
-                            feeToDeduct={feeSettings.catalogTrialFee}
-                            onConfirm={() => handleSubscription('trial')}
-                            skipFeeDeduction={false}
-                            >
-                                <Button className="w-full" variant="secondary">Pilih Paket</Button>
-                            </AIConfirmationDialog>
-                        </CardFooter>
-                    </Card>
-                )}
                 <Card className='flex-1'>
                     <CardHeader className="text-center">
                         <CardTitle className="text-xl">Bulanan</CardTitle>

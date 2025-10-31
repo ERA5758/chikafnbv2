@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -21,7 +20,7 @@ import {
   Bar,
   BarChart,
 } from 'recharts';
-import { TrendingUp, DollarSign, Sparkles, ShoppingBag, Target, CheckCircle, Calendar as CalendarIcon, TrendingDown, FileText, FileSpreadsheet, PackageX } from 'lucide-react';
+import { TrendingUp, DollarSign, Sparkles, ShoppingBag, Target, CheckCircle, Calendar as CalendarIcon, TrendingDown, FileText, FileSpreadsheet, PackageX, Newspaper } from 'lucide-react';
 import { subMonths, format, startOfMonth, endOfMonth, isWithinInterval, formatISO, subDays, addDays } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
@@ -32,7 +31,7 @@ import { Popover, PopoverContent, PopoverTrigger } from '@/components/ui/popover
 import { cn } from '@/lib/utils';
 import { Calendar } from '@/components/ui/calendar';
 import { Label } from '@/components/ui/label';
-import { db } from '@/lib/firebase';
+import { db, auth } from '@/lib/firebase';
 import { collection, addDoc, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import type { AppliedStrategy, TransactionItem, Transaction } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
@@ -62,7 +61,7 @@ const chartConfig = {
 };
 
 export default function AdminOverview() {
-  const { activeStore } = useAuth();
+  const { activeStore, updateActiveStore, refreshActiveStore } = useAuth();
   const { dashboardData } = useDashboard();
   const { transactions, products, feeSettings } = dashboardData;
   const [recommendations, setRecommendations] = React.useState<AdminRecommendationOutput | null>(null);
@@ -251,6 +250,51 @@ export default function AdminOverview() {
       { name: `7 Hari Sesudah`, revenue: revenueAfter, fill: "hsl(var(--primary))" },
     ];
   };
+  
+  const handleClaimTrial = async () => {
+    try {
+        const idToken = await auth.currentUser?.getIdToken(true);
+        if (!idToken || !activeStore) {
+            throw new Error("Sesi tidak valid atau toko tidak aktif.");
+        }
+        
+        const response = await fetch('/api/store/subscribe-catalog', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${idToken}`,
+            },
+            body: JSON.stringify({ storeId: activeStore.id, planId: 'trial' }),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.error || `Gagal memproses langganan.`);
+        }
+        
+        const result = await response.json();
+
+        toast({
+            title: 'Katalog Percobaan Diaktifkan!',
+            description: `Katalog Digital Premium Anda aktif selama ${feeSettings?.catalogTrialDurationMonths || 1} bulan.`,
+        });
+
+        if (result.newExpiryDate) {
+            updateActiveStore({ 
+                catalogSubscriptionExpiry: result.newExpiryDate,
+                pradanaTokenBalance: result.newBalance,
+                hasUsedCatalogTrial: true,
+            });
+        } else {
+            refreshActiveStore(); 
+        }
+        return result;
+    } catch (error) {
+        console.error(`Trial claim error:`, error);
+        throw error;
+    }
+  };
+
 
   const handleExport = async (formatType: 'PDF' | 'Excel') => {
     if (!exportDate?.from || !exportDate?.to || !transactions.length) {
@@ -358,9 +402,36 @@ export default function AdminOverview() {
       description: `Data penjualan telah diexport ke format ${formatType}.`,
     });
   }
+  
+  const isTrialAvailable = !activeStore?.hasUsedCatalogTrial && feeSettings && feeSettings.catalogTrialFee > 0;
 
   return (
     <div className="grid gap-6">
+      {isTrialAvailable && (
+        <Card className="border-primary/50 bg-primary/10">
+          <CardHeader>
+            <CardTitle className="font-headline tracking-wider text-primary">Penawaran Spesial Pengguna Baru!</CardTitle>
+            <CardDescription>Aktifkan Katalog Publik digital Anda dengan harga percobaan yang sangat terjangkau.</CardDescription>
+          </CardHeader>
+          <CardContent>
+             <p className="mb-4 text-sm">Tingkatkan pengalaman pelanggan dengan menu digital modern yang dilengkapi asisten AI. Klaim sekarang hanya dengan <span className="font-bold">{feeSettings.catalogTrialFee} Pradana Token</span> untuk {feeSettings.catalogTrialDurationMonths} bulan.</p>
+             <AIConfirmationDialog
+                featureName="Klaim Katalog Percobaan"
+                featureDescription={`Anda akan mengaktifkan langganan Katalog Digital selama ${feeSettings.catalogTrialDurationMonths} bulan dengan harga spesial.`}
+                feeSettings={feeSettings}
+                feeToDeduct={feeSettings.catalogTrialFee}
+                onConfirm={handleClaimTrial}
+                skipFeeDeduction={false}
+              >
+                  <Button>
+                    <Newspaper className="mr-2 h-4 w-4" />
+                    Klaim Katalog Publik
+                  </Button>
+              </AIConfirmationDialog>
+          </CardContent>
+        </Card>
+      )}
+
       <Card>
         <CardHeader>
           <CardTitle className="font-headline tracking-wider">Pertumbuhan Pendapatan Bulanan</CardTitle>
