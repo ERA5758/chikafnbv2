@@ -78,7 +78,7 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         icon: <Store />,
         roles: ['admin', 'cashier', 'kitchen'],
         items: [
-            { view: 'overview', label: 'Overview', icon: <LayoutGrid />, roles: ['admin', 'cashier'] },
+            { view: 'overview', label: 'Overview', icon: <LayoutGrid />, roles: ['admin', 'cashier'], tourId: 'sidebar-overview' },
             { view: 'pos', label: 'Kasir POS', icon: <Armchair />, roles: ['admin', 'cashier'] },
             { view: 'kitchen', label: 'Dapur', icon: <ChefHat />, roles: ['admin', 'kitchen'] },
             { view: 'transactions', label: 'Transaksi', icon: <History />, roles: ['admin', 'cashier'] },
@@ -89,7 +89,7 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         icon: <Wallet />,
         roles: ['admin', 'cashier'],
         items: [
-            { view: 'products', label: 'Produk (Menu)', icon: <BookOpenCheck />, roles: ['admin', 'cashier'] },
+            { view: 'products', label: 'Produk (Menu)', icon: <BookOpenCheck />, roles: ['admin', 'cashier'], tourId: 'sidebar-products' },
             { view: 'customers', label: 'Pelanggan', icon: <Contact2 />, roles: ['admin', 'cashier'] },
             { view: 'employees', label: 'Karyawan', icon: <Users />, roles: ['admin'] },
         ]
@@ -134,7 +134,7 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
               <Dialog open={isTopUpOpen} onOpenChange={setIsTopUpOpen}>
                 {isAdmin ? (
                     <DialogTrigger asChild>
-                        <div className="cursor-pointer rounded-md p-1 hover:bg-sidebar-accent">
+                        <div data-tour="top-up-button" className="cursor-pointer rounded-md p-1 hover:bg-sidebar-accent">
                             {tokenDisplay}
                         </div>
                     </DialogTrigger>
@@ -164,7 +164,7 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
                   <span>{group.group}</span>
                 </SidebarGroupLabel>
                 {visibleItems.map((item) => (
-                  <SidebarMenuItem key={item.view}>
+                  <SidebarMenuItem key={item.view} data-tour={item.tourId}>
                     <SidebarMenuButton
                       onClick={() => navigate(item.view)}
                       isActive={currentView === item.view}
@@ -195,7 +195,7 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
                </div>
             )}
             <ThemeSwitcher />
-          <SidebarMenuItem>
+          <SidebarMenuItem data-tour="sidebar-settings">
             <SidebarMenuButton tooltip="Pengaturan" onClick={() => navigate('settings')} isActive={currentView === 'settings'}>
               <Settings />
               <span>Pengaturan</span>

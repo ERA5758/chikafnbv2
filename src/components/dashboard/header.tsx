@@ -19,7 +19,7 @@ export function Header({
       <div className="flex h-12 items-center justify-between">
         <div className="flex items-center gap-2">
           <SidebarTrigger className="lg:hidden" />
-          <h1 className="font-headline text-2xl tracking-wide text-foreground sm:text-3xl">
+          <h1 data-tour="header-title" className="font-headline text-2xl tracking-wide text-foreground sm:text-3xl">
             {title}
           </h1>
         </div>
