@@ -219,7 +219,7 @@ export default function CatalogSettings() {
                     Pilih paket yang paling sesuai dengan kebutuhan bisnis Anda untuk mengaktifkan fitur ini.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="flex flex-col md:flex-row items-stretch justify-center gap-6">
+            <CardContent className="flex flex-col items-stretch gap-6 md:px-20 lg:px-40">
                 {!hasUsedTrial && (
                     <Card className='flex-1'>
                         <CardHeader className="text-center">
