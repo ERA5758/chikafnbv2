@@ -1,3 +1,4 @@
+
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { db } from '@/lib/firebase';
@@ -90,9 +91,8 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   }, []);
 
   const startTour = useCallback(() => {
-    // Logic to start the tour, currently disabled
-    // localStorage.removeItem('chika-tour-viewed');
-    // setTimeout(() => setRunTour(true), 100);
+    localStorage.removeItem('chika-tour-viewed');
+    setTimeout(() => setRunTour(true), 100);
   }, []);
 
 
