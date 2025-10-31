@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -10,7 +11,7 @@ import { Skeleton } from '@/components/ui/skeleton';
 import { AIConfirmationDialog } from '@/components/dashboard/ai-confirmation-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { auth, db } from '@/lib/firebase';
-import { doc, updateDoc, setDoc } from 'firebase/firestore'; // Import setDoc
+import { doc, updateDoc, setDoc } from 'firebase/firestore';
 import { format } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
@@ -218,9 +219,9 @@ export default function CatalogSettings() {
                     Pilih paket yang paling sesuai dengan kebutuhan bisnis Anda untuk mengaktifkan fitur ini.
                 </CardDescription>
             </CardHeader>
-            <CardContent className="grid md:grid-cols-4 gap-6">
+            <CardContent className="flex flex-col md:flex-row items-stretch justify-center gap-6">
                 {!hasUsedTrial && (
-                    <Card>
+                    <Card className='flex-1'>
                         <CardHeader className="text-center">
                             <CardTitle className="text-xl flex items-center justify-center gap-2 text-accent"><SparklesIcon /> Coba Dulu</CardTitle>
                             <CardDescription>Penawaran Pertama Kali</CardDescription>
@@ -242,7 +243,7 @@ export default function CatalogSettings() {
                         </CardFooter>
                     </Card>
                 )}
-                <Card>
+                <Card className='flex-1'>
                     <CardHeader className="text-center">
                         <CardTitle className="text-xl">Bulanan</CardTitle>
                         <CardDescription>Fleksibel & Terjangkau</CardDescription>
@@ -264,7 +265,7 @@ export default function CatalogSettings() {
                     </CardFooter>
                 </Card>
 
-                 <Card className="border-primary shadow-lg relative">
+                 <Card className="border-primary shadow-lg relative flex-1">
                     <div className="absolute top-0 left-1/2 -translate-x-1/2 -translate-y-1/2">
                         <div className="flex items-center gap-1 rounded-full bg-primary px-3 py-1 text-xs font-semibold text-primary-foreground">
                             <Star className="h-3 w-3" /> Paling Populer
@@ -294,7 +295,7 @@ export default function CatalogSettings() {
                     </CardFooter>
                 </Card>
 
-                 <Card>
+                 <Card className='flex-1'>
                     <CardHeader className="text-center">
                         <CardTitle className="text-xl">Tahunan</CardTitle>
                         <CardDescription>Nilai Paling Hemat</CardDescription>
