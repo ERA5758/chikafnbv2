@@ -229,7 +229,7 @@ export default function LoginPage() {
             </CardContent>
         </Card>
 
-        <Link href="https://chikapos.vercel.app" target="_blank" className="block">
+        <Link href="https://pos.era5758.co.id" target="_blank" className="block">
             <Card className="text-center hover:bg-muted">
                 <CardHeader>
                     <CardTitle className="text-lg font-headline tracking-wider">APLIKASI POS RETAIL</CardTitle>
