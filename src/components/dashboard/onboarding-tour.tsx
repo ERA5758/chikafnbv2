@@ -11,7 +11,7 @@ import { tourSteps as steps } from '@/lib/tour-steps';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { Button } from '../ui/button';
 
-// Custom CSS to override Shepherd styles
+// Custom CSS to override Shepherd styles and make it theme-aware
 const tourStyles = `
   .shepherd-element {
     background: hsl(var(--card));
