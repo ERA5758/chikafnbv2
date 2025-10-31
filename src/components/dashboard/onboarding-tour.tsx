@@ -1,7 +1,7 @@
 'use client';
 
 import * as React from 'react';
-import Joyride, { CallBackProps, STATUS } from 'react-joyride';
+import Joyride, { CallBackProps, STATUS, Step } from 'react-joyride';
 import { useAuth } from '@/contexts/auth-context';
 import { useDashboard } from '@/contexts/dashboard-context';
 import { useTheme } from 'next-themes';
@@ -62,12 +62,9 @@ export function OnboardingTour() {
           textColor: theme === 'dark' ? '#f8fafc' : '#0a0a0a',
           zIndex: 1000,
         },
-        tooltip: {
-            borderRadius: 'var(--radius)',
-        },
         buttonClose: {
             display: 'none',
-        },
+        }
       }}
     />
   );
