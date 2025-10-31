@@ -79,9 +79,9 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         roles: ['admin', 'cashier', 'kitchen'],
         items: [
             { view: 'overview', label: 'Overview', icon: <LayoutGrid />, roles: ['admin', 'cashier'], tourId: 'sidebar-overview' },
-            { view: 'pos', label: 'Kasir POS', icon: <Armchair />, roles: ['admin', 'cashier'] },
-            { view: 'kitchen', label: 'Dapur', icon: <ChefHat />, roles: ['admin', 'kitchen'] },
-            { view: 'transactions', label: 'Transaksi', icon: <History />, roles: ['admin', 'cashier'] },
+            { view: 'pos', label: 'Kasir POS', icon: <Armchair />, roles: ['admin', 'cashier'], tourId: 'sidebar-pos' },
+            { view: 'kitchen', label: 'Dapur', icon: <ChefHat />, roles: ['admin', 'kitchen'], tourId: 'sidebar-kitchen' },
+            { view: 'transactions', label: 'Transaksi', icon: <History />, roles: ['admin', 'cashier'], tourId: 'sidebar-transactions' },
         ]
     },
     {
@@ -90,8 +90,8 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         roles: ['admin', 'cashier'],
         items: [
             { view: 'products', label: 'Produk (Menu)', icon: <BookOpenCheck />, roles: ['admin', 'cashier'], tourId: 'sidebar-products' },
-            { view: 'customers', label: 'Pelanggan', icon: <Contact2 />, roles: ['admin', 'cashier'] },
-            { view: 'employees', label: 'Karyawan', icon: <Users />, roles: ['admin'] },
+            { view: 'customers', label: 'Pelanggan', icon: <Contact2 />, roles: ['admin', 'cashier'], tourId: 'sidebar-customers' },
+            { view: 'employees', label: 'Karyawan', icon: <Users />, roles: ['admin'], tourId: 'sidebar-employees' },
         ]
     },
     {
@@ -99,10 +99,10 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         icon: <TrendingUp />,
         roles: ['admin'],
         items: [
-            { view: 'customer-analytics', label: 'Analisis Pelanggan', icon: <BarChart4 />, roles: ['admin'] },
-            { view: 'promotions', label: 'Promosi', icon: <Gift />, roles: ['admin'] },
-            { view: 'challenges', label: 'Tantangan', icon: <Trophy />, roles: ['admin'] },
-            { view: 'ai-business-plan', label: 'AI Business Plan', icon: <Map />, roles: ['admin'] },
+            { view: 'customer-analytics', label: 'Analisis Pelanggan', icon: <BarChart4 />, roles: ['admin'], tourId: 'sidebar-customer-analytics' },
+            { view: 'promotions', label: 'Promosi', icon: <Gift />, roles: ['admin'], tourId: 'sidebar-promotions' },
+            { view: 'challenges', label: 'Tantangan', icon: <Trophy />, roles: ['admin'], tourId: 'sidebar-challenges' },
+            { view: 'ai-business-plan', label: 'AI Business Plan', icon: <Map />, roles: ['admin'], tourId: 'sidebar-ai-business-plan' },
         ]
     },
      {
@@ -110,8 +110,8 @@ export function MainSidebar({ pradanaTokenBalance }: MainSidebarProps) {
         icon: <Settings />,
         roles: ['admin'],
         items: [
-            { view: 'receipt-settings', label: 'Pengaturan Struk', icon: <Receipt />, roles: ['admin'] },
-            { view: 'catalog', label: 'Katalog Publik', icon: <Newspaper />, roles: ['admin'] },
+            { view: 'receipt-settings', label: 'Pengaturan Struk', icon: <Receipt />, roles: ['admin'], tourId: 'sidebar-receipt-settings' },
+            { view: 'catalog', label: 'Katalog Publik', icon: <Newspaper />, roles: ['admin'], tourId: 'sidebar-catalog' },
         ]
     },
   ];
