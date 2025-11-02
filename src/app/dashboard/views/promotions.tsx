@@ -21,14 +21,7 @@ import {
 import type { RedemptionOption, Transaction, Product } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle, CheckCircle, XCircle, Sparkles, Target, Trash2 } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { PlusCircle, CheckCircle, XCircle, Sparkles, Target, Trash2 } from 'lucide-react';
 import { useToast } from '@/hooks/use-toast';
 import { startOfMonth, endOfMonth, isWithinInterval } from 'date-fns';
 import {
@@ -50,6 +43,7 @@ import {
   DialogTitle,
   DialogDescription,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { AddPromotionForm } from '@/components/dashboard/add-promotion-form';
 import { useAuth } from '@/contexts/auth-context';
