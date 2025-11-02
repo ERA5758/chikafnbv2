@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -334,8 +333,8 @@ export default function Products() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nama</TableHead>
-                <TableHead>Kategori</TableHead>
-                <TableHead className="text-center w-[180px]">Status Ketersediaan</TableHead>
+                <TableHead className="hidden md:table-cell">Kategori</TableHead>
+                <TableHead className="hidden md:table-cell text-center w-[180px]">Status Ketersediaan</TableHead>
                 <TableHead className="text-right">Harga</TableHead>
               </TableRow>
             </TableHeader>
@@ -344,8 +343,8 @@ export default function Products() {
                 Array.from({ length: 5 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-3/4" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell className="text-center"><Skeleton className="h-8 w-24 mx-auto" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-20" /></TableCell>
+                    <TableCell className="hidden md:table-cell text-center"><Skeleton className="h-8 w-24 mx-auto" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto" /></TableCell>
                   </TableRow>
                 ))
@@ -353,10 +352,10 @@ export default function Products() {
                 filteredProducts.map((product) => (
                   <TableRow key={product.id} onClick={() => handleRowClick(product)} className={cn(isAdmin && 'cursor-pointer')}>
                     <TableCell className="font-medium">{product.name}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge variant="outline">{product.category}</Badge>
                     </TableCell>
-                    <TableCell className="text-center" onClick={(e) => e.stopPropagation()}>
+                    <TableCell className="hidden md:table-cell text-center" onClick={(e) => e.stopPropagation()}>
                        {isAdmin ? (
                          <StockToggle 
                           product={product} 

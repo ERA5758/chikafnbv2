@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -156,8 +155,8 @@ export default function Employees() {
             <TableHeader>
               <TableRow>
                 <TableHead>Nama</TableHead>
-                <TableHead>Email</TableHead>
-                <TableHead>Peran</TableHead>
+                <TableHead className="hidden md:table-cell">Email</TableHead>
+                <TableHead className="hidden md:table-cell">Peran</TableHead>
                 <TableHead>Status</TableHead>
               </TableRow>
             </TableHeader>
@@ -166,8 +165,8 @@ export default function Employees() {
                  Array.from({ length: 3 }).map((_, i) => (
                   <TableRow key={i}>
                     <TableCell><Skeleton className="h-5 w-32" /></TableCell>
-                    <TableCell><Skeleton className="h-5 w-40" /></TableCell>
-                    <TableCell><Skeleton className="h-6 w-16" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-40" /></TableCell>
+                    <TableCell className="hidden md:table-cell"><Skeleton className="h-6 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
                   </TableRow>
                 ))
@@ -175,8 +174,8 @@ export default function Employees() {
                 users.map((user) => (
                   <TableRow key={user.id} onClick={() => handleRowClick(user)} className={cn(`cursor-pointer`, user.status === 'inactive' && 'text-muted-foreground')}>
                     <TableCell className="font-medium">{user.name}</TableCell>
-                    <TableCell>{user.email}</TableCell>
-                    <TableCell>
+                    <TableCell className="hidden md:table-cell">{user.email}</TableCell>
+                    <TableCell className="hidden md:table-cell">
                       <Badge
                         variant={user.role === 'admin' ? 'default' : 'secondary'}
                       >

@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -343,8 +342,8 @@ export default function Promotions() {
                 <TableRow>
                   <TableHead>Deskripsi</TableHead>
                   <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="text-right">Poin Dibutuhkan</TableHead>
-                  <TableHead className="text-right">Nilai (Rp)</TableHead>
+                  <TableHead className="hidden md:table-cell text-right">Poin Dibutuhkan</TableHead>
+                  <TableHead className="hidden md:table-cell text-right">Nilai (Rp)</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -356,10 +355,10 @@ export default function Promotions() {
                         {option.isActive ? 'Aktif' : 'Non-Aktif'}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right font-mono">
+                    <TableCell className="hidden md:table-cell text-right font-mono">
                       {option.pointsRequired.toLocaleString('id-ID')}
                     </TableCell>
-                    <TableCell className="text-right font-mono">
+                    <TableCell className="hidden md:table-cell text-right font-mono">
                       {option.value.toLocaleString('id-ID')}
                     </TableCell>
                   </TableRow>
@@ -392,6 +391,14 @@ export default function Promotions() {
                               </Button>
                           </div>
                       </div>
+                       <div className="flex items-center justify-between rounded-lg border p-4">
+                          <span>Poin Dibutuhkan</span>
+                          <span className="font-mono">{selectedPromotion.pointsRequired.toLocaleString('id-ID')}</span>
+                      </div>
+                       <div className="flex items-center justify-between rounded-lg border p-4">
+                          <span>Nilai Promo</span>
+                          <span className="font-mono">Rp {selectedPromotion.value.toLocaleString('id-ID')}</span>
+                      </div>
                   </div>
                   <DialogFooter>
                       <Button variant="destructive" onClick={() => handleDeleteClick(selectedPromotion)}>
@@ -408,7 +415,7 @@ export default function Promotions() {
             <AlertDialogTitle>Anda Yakin?</AlertDialogTitle>
             <AlertDialogDescription>
               Tindakan ini tidak dapat dibatalkan. Ini akan menghapus promosi secara permanen: <br />
-              <span className="font-bold">&quot;{selectedPromotion?.description}&quot;</span>.
+              <span className="font-bold">&quot;{promotionToDelete?.description}&quot;</span>.
             </AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogFooter>

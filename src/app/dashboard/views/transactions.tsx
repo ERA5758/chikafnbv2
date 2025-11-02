@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -384,9 +383,9 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
               <TableHeader>
                 <TableRow>
                   <TableHead>Nota</TableHead>
-                  <TableHead>Tanggal</TableHead>
+                  <TableHead className="hidden md:table-cell">Tanggal</TableHead>
                   <TableHead>Pelanggan</TableHead>
-                  <TableHead>Metode Pembayaran</TableHead>
+                  <TableHead className="hidden md:table-cell">Metode Pembayaran</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right">Total</TableHead>
                 </TableRow>
@@ -396,9 +395,9 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                     Array.from({length: 10}).map((_, i) => (
                         <TableRow key={i}>
                             <TableCell><Skeleton className="h-5 w-16"/></TableCell>
-                            <TableCell><Skeleton className="h-5 w-24"/></TableCell>
+                            <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24"/></TableCell>
                             <TableCell><Skeleton className="h-5 w-32"/></TableCell>
-                            <TableCell><Skeleton className="h-5 w-24"/></TableCell>
+                            <TableCell className="hidden md:table-cell"><Skeleton className="h-5 w-24"/></TableCell>
                             <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto"/></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto"/></TableCell>
                         </TableRow>
@@ -408,9 +407,9 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                     return (
                     <TableRow key={transaction.id} onClick={() => onDetailRequest(transaction)} className="cursor-pointer">
                         <TableCell className="font-mono">{String(transaction.receiptNumber).padStart(6, '0')}</TableCell>
-                        <TableCell>{new Date(transaction.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
+                        <TableCell className="hidden md:table-cell">{new Date(transaction.createdAt).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}</TableCell>
                         <TableCell>{transaction.customerName}</TableCell>
-                        <TableCell>{transaction.paymentMethod}</TableCell>
+                        <TableCell className="hidden md:table-cell">{transaction.paymentMethod}</TableCell>
                         <TableCell className="text-center">
                           <Badge 
                             variant={transaction.status === 'Selesai' || transaction.status === 'Selesai Dibayar' ? 'secondary' : 'default'}
