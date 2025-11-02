@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -21,14 +22,7 @@ import type { Customer } from '@/lib/types';
 import { Badge } from '@/components/ui/badge';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { Button } from '@/components/ui/button';
-import { MoreHorizontal, PlusCircle } from 'lucide-react';
-import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
+import { PlusCircle, Edit, Trash2 } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
@@ -36,6 +30,7 @@ import {
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import {
   AlertDialog,
@@ -55,7 +50,7 @@ import { db } from '@/lib/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
 
-function CustomerDetailsDialog({ customer, open, onOpenChange }: { customer: Customer; open: boolean; onOpenChange: (open: boolean) => void }) {
+function CustomerDetailsDialog({ customer, open, onOpenChange, onDeleteClick }: { customer: Customer; open: boolean; onOpenChange: (open: boolean) => void; onDeleteClick: (customer: Customer) => void; }) {
     if (!customer) return null;
 
     return (
@@ -82,6 +77,15 @@ function CustomerDetailsDialog({ customer, open, onOpenChange }: { customer: Cus
                         )}
                     </div>
                 </div>
+                 <DialogFooter className='border-t pt-4'>
+                    <div className='flex w-full justify-between'>
+                        <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>
+                        <div className='flex gap-2'>
+                            <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/> Ubah</Button>
+                            <Button variant="destructive" onClick={() => onDeleteClick(customer)}><Trash2 className="mr-2 h-4 w-4"/> Hapus</Button>
+                        </div>
+                    </div>
+                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
@@ -106,6 +110,7 @@ export default function Customers() {
   }
 
   const handleDeleteClick = (customer: Customer) => {
+    setSelectedCustomer(null); // Close detail dialog
     setCustomerToDelete(customer);
   };
   
@@ -174,7 +179,6 @@ export default function Customers() {
                 <TableHead>Telepon</TableHead>
                 <TableHead>Tier</TableHead>
                 <TableHead className="text-right">Poin Loyalitas</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -190,7 +194,6 @@ export default function Customers() {
                     <TableCell><Skeleton className="h-5 w-28" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                     <TableCell className="text-right"><Skeleton className="h-5 w-12 ml-auto" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : (
@@ -223,26 +226,6 @@ export default function Customers() {
                     <TableCell className="text-right font-mono">
                         {customer.loyaltyPoints.toLocaleString('id-ID')}
                     </TableCell>
-                    <TableCell className="text-right">
-                        <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleRowClick(customer)}>
-                                Lihat Detail
-                            </DropdownMenuItem>
-                            <DropdownMenuItem disabled>Ubah</DropdownMenuItem>
-                            <DropdownMenuItem className="text-destructive" onClick={() => handleDeleteClick(customer)}>
-                            Hapus
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                        </DropdownMenu>
-                    </TableCell>
                     </TableRow>
                 ))
               )}
@@ -255,6 +238,7 @@ export default function Customers() {
             customer={selectedCustomer}
             open={!!selectedCustomer}
             onOpenChange={() => setSelectedCustomer(null)}
+            onDeleteClick={handleDeleteClick}
         />
       )}
        <AlertDialog open={!!customerToDelete} onOpenChange={() => setCustomerToDelete(null)}>

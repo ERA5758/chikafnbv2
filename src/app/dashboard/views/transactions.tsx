@@ -492,7 +492,6 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                   <TableHead>Metode Pembayaran</TableHead>
                   <TableHead className="text-center">Status</TableHead>
                   <TableHead className="text-right">Total</TableHead>
-                  <TableHead className="text-right w-[200px]">Aksi</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -505,7 +504,6 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                             <TableCell><Skeleton className="h-5 w-24"/></TableCell>
                             <TableCell className="text-center"><Skeleton className="h-6 w-20 mx-auto"/></TableCell>
                             <TableCell className="text-right"><Skeleton className="h-5 w-20 ml-auto"/></TableCell>
-                            <TableCell className="text-right"><Skeleton className="h-8 w-28 ml-auto"/></TableCell>
                         </TableRow>
                     ))
                 ) : (
@@ -530,20 +528,6 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                           </Badge>
                         </TableCell>
                         <TableCell className="text-right font-mono">Rp {transaction.totalAmount.toLocaleString('id-ID')}</TableCell>
-                         <TableCell className="text-right">
-                           <div className="flex justify-end gap-2" onClick={(e) => e.stopPropagation()}>
-                            {transaction.paymentMethod === 'Belum Dibayar' && transaction.status !== 'Dibatalkan' && (
-                                <Button size="sm" onClick={() => setTransactionToPay(transaction)}>Bayar</Button>
-                           )}
-                           {transaction.status === 'Diproses' && (
-                               <Button size="sm" variant="outline" onClick={() => setTransactionToComplete(transaction)}>Selesaikan</Button>
-                           )}
-                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={() => onDetailRequest(transaction)}>
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Lihat Detail</span>
-                            </Button>
-                           </div>
-                        </TableCell>
                     </TableRow>
                     )})
                 )}
