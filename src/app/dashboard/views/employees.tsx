@@ -8,6 +8,7 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
+  CardFooter,
 } from '@/components/ui/card';
 import {
   Table,
@@ -22,19 +23,13 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, PlusCircle, CheckCircle, XCircle } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
   DialogHeader,
   DialogTitle,
   DialogTrigger,
+  DialogFooter,
 } from '@/components/ui/dialog';
 import { AddEmployeeForm } from '@/components/dashboard/add-employee-form';
 import { EditEmployeeForm } from '@/components/dashboard/edit-employee-form';
@@ -54,6 +49,7 @@ import {
 } from '@/components/ui/alert-dialog';
 import { useToast } from '@/hooks/use-toast';
 import { useAuth } from '@/contexts/auth-context';
+import { cn } from '@/lib/utils';
 
 export default function Employees() {
   const { activeStore } = useAuth();
@@ -61,8 +57,6 @@ export default function Employees() {
   const [isLoading, setIsLoading] = React.useState(true);
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [isEditDialogOpen, setIsEditDialogOpen] = React.useState(false);
-  const [isStatusChangeDialogOpen, setIsStatusChangeDialogOpen] = React.useState(false);
-  const [isResetPasswordDialogOpen, setIsResetPasswordDialogOpen] = React.useState(false);
   const [selectedUser, setSelectedUser] = React.useState<User | null>(null);
   const { toast } = useToast();
 
@@ -108,82 +102,11 @@ export default function Employees() {
     }
   }, [activeStore, fetchUsers]);
 
-
-  const handleEditClick = (user: User) => {
+  const handleRowClick = (user: User) => {
     setSelectedUser(user);
     setIsEditDialogOpen(true);
   };
   
-  const handleStatusChangeClick = (user: User) => {
-    setSelectedUser(user);
-    setIsStatusChangeDialogOpen(true);
-  }
-
-  const handleResetPasswordClick = (user: User) => {
-    setSelectedUser(user);
-    setIsResetPasswordDialogOpen(true);
-  }
-
-  const handleConfirmStatusChange = async () => {
-    if (!selectedUser) return;
-    
-    const newStatus = selectedUser.status === 'active' ? 'inactive' : 'active';
-    const userDocRef = doc(db, 'users', selectedUser.id);
-
-    try {
-        await updateDoc(userDocRef, { status: newStatus });
-        
-        setUsers(prevUsers => prevUsers.map(u => u.id === selectedUser.id ? {...u, status: newStatus} : u));
-
-        toast({
-        title: 'Status Karyawan Diperbarui',
-        description: `Status untuk ${selectedUser.name} telah diubah menjadi ${newStatus}.`,
-        });
-
-    } catch (error) {
-        console.error("Error updating user status:", error);
-        toast({
-            variant: 'destructive',
-            title: 'Gagal Memperbarui Status',
-            description: 'Terjadi kesalahan saat mengubah status karyawan. Silakan coba lagi.'
-        });
-    }
-
-    setIsStatusChangeDialogOpen(false);
-    setSelectedUser(null);
-  };
-
-  const handleConfirmResetPassword = async () => {
-    if (!selectedUser?.email) {
-      toast({ variant: 'destructive', title: 'Email tidak ditemukan' });
-      return;
-    }
-    
-    try {
-      await sendPasswordResetEmail(auth, selectedUser.email);
-      toast({
-        title: 'Email Reset Password Terkirim',
-        description: `Email telah dikirim ke ${selectedUser.email}.`,
-      });
-    } catch (error) {
-      console.error("Error sending password reset email:", error);
-      toast({
-        variant: 'destructive',
-        title: 'Gagal Mengirim Email',
-        description: 'Terjadi kesalahan. Pastikan email karyawan valid.',
-      });
-    } finally {
-      setIsResetPasswordDialogOpen(false);
-      setSelectedUser(null);
-    }
-  };
-
-
-  const handleDialogClose = () => {
-    setIsEditDialogOpen(false);
-    setSelectedUser(null);
-  }
-
   const handleUserAdded = () => {
     fetchUsers();
   }
@@ -236,7 +159,6 @@ export default function Employees() {
                 <TableHead>Email</TableHead>
                 <TableHead>Peran</TableHead>
                 <TableHead>Status</TableHead>
-                <TableHead className="text-right">Aksi</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -247,12 +169,11 @@ export default function Employees() {
                     <TableCell><Skeleton className="h-5 w-40" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-16" /></TableCell>
                     <TableCell><Skeleton className="h-6 w-20" /></TableCell>
-                    <TableCell className="text-right"><Skeleton className="h-8 w-8 ml-auto" /></TableCell>
                   </TableRow>
                 ))
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id} onClick={() => handleEditClick(user)} className={`cursor-pointer ${user.status === 'inactive' ? 'text-muted-foreground' : ''}`}>
+                  <TableRow key={user.id} onClick={() => handleRowClick(user)} className={cn(`cursor-pointer`, user.status === 'inactive' && 'text-muted-foreground')}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
@@ -270,35 +191,6 @@ export default function Employees() {
                         {user.status}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right">
-                      <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
-                            <MoreHorizontal className="h-4 w-4" />
-                            <span className="sr-only">Toggle menu</span>
-                          </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                          <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                          <DropdownMenuItem onClick={() => handleEditClick(user)}>Ubah</DropdownMenuItem>
-                          <DropdownMenuItem onClick={() => handleResetPasswordClick(user)}>Atur Ulang Password</DropdownMenuItem>
-                          <DropdownMenuItem 
-                            className={user.status === 'active' ? 'text-destructive' : 'text-green-600 focus:text-green-600'}
-                            onClick={() => handleStatusChangeClick(user)}
-                          >
-                            {user.status === 'active' ? (
-                                <>
-                                 <XCircle className="mr-2 h-4 w-4"/> Nonaktifkan
-                                </>
-                            ) : (
-                                <>
-                                 <CheckCircle className="mr-2 h-4 w-4"/> Aktifkan
-                                </>
-                            )}
-                          </DropdownMenuItem>
-                        </DropdownMenuContent>
-                      </DropdownMenu>
-                    </TableCell>
                   </TableRow>
                 ))
               )}
@@ -307,7 +199,10 @@ export default function Employees() {
         </CardContent>
       </Card>
       {selectedUser && (
-        <Dialog open={isEditDialogOpen} onOpenChange={handleDialogClose}>
+        <Dialog open={isEditDialogOpen} onOpenChange={() => {
+          setIsEditDialogOpen(false);
+          setSelectedUser(null);
+        }}>
           <DialogContent className="sm:max-w-[425px]">
             <DialogHeader>
               <DialogTitle className="font-headline tracking-wider">
@@ -318,55 +213,13 @@ export default function Employees() {
               </DialogDescription>
             </DialogHeader>
             <EditEmployeeForm 
-              setDialogOpen={handleDialogClose} 
+              setDialogOpen={setIsEditDialogOpen} 
               employee={selectedUser}
               onEmployeeUpdated={handleUserUpdated}
             />
           </DialogContent>
         </Dialog>
       )}
-
-      <AlertDialog open={isStatusChangeDialogOpen} onOpenChange={setIsStatusChangeDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Anda yakin?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini akan {selectedUser?.status === 'active' ? 'menonaktifkan' : 'mengaktifkan'} akun untuk{' '}
-              <span className="font-bold">{selectedUser?.name}</span>. 
-              {selectedUser?.status === 'active' 
-                ? ' Mereka tidak akan bisa login lagi.' 
-                : ' Mereka akan bisa login kembali.'}
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction
-              onClick={handleConfirmStatusChange}
-              className={selectedUser?.status === 'active' ? 'bg-destructive text-destructive-foreground hover:bg-destructive/90' : ''}
-            >
-              Ya, {selectedUser?.status === 'active' ? 'Nonaktifkan' : 'Aktifkan'}
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
-
-      <AlertDialog open={isResetPasswordDialogOpen} onOpenChange={setIsResetPasswordDialogOpen}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Atur Ulang Password?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Tindakan ini akan mengirimkan email pengaturan ulang password ke{' '}
-              <span className="font-bold">{selectedUser?.email}</span>. Karyawan tersebut harus mengikuti instruksi di email untuk membuat password baru.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleConfirmResetPassword}>
-              Ya, Kirim Email
-            </AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }

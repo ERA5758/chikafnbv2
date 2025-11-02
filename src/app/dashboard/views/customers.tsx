@@ -49,52 +49,13 @@ import { useDashboard } from '@/contexts/dashboard-context';
 import { db } from '@/lib/firebase';
 import { doc, deleteDoc } from 'firebase/firestore';
 import { useToast } from '@/hooks/use-toast';
-
-function CustomerDetailsDialog({ customer, open, onOpenChange, onDeleteClick }: { customer: Customer; open: boolean; onOpenChange: (open: boolean) => void; onDeleteClick: (customer: Customer) => void; }) {
-    if (!customer) return null;
-
-    return (
-        <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-md">
-                <DialogHeader>
-                    <DialogTitle className="font-headline tracking-wider">{customer.name}</DialogTitle>
-                    <DialogDescription>
-                        ID Pelanggan: {customer.id}
-                    </DialogDescription>
-                </DialogHeader>
-                <div className="flex items-center gap-4 py-4">
-                    <Avatar className="h-24 w-24 border-4 border-primary/50">
-                        <AvatarImage src={customer.avatarUrl} alt={customer.name} />
-                        <AvatarFallback>{customer.name.charAt(0)}</AvatarFallback>
-                    </Avatar>
-                    <div className="space-y-1 text-sm">
-                        <div><strong>Telepon:</strong> {customer.phone}</div>
-                        <div className="flex items-center gap-1"><strong>Tier:</strong> <Badge variant={customer.memberTier === 'Gold' ? 'default' : 'secondary'}>{customer.memberTier}</Badge></div>
-                        <div><strong>Poin:</strong> {customer.loyaltyPoints.toLocaleString('id-ID')}</div>
-                        <div><strong>Bergabung:</strong> {new Date(customer.joinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
-                        {new Date(customer.birthDate).getFullYear() > 1970 && (
-                             <div><strong>Ulang Tahun:</strong> {new Date(customer.birthDate).toLocaleDateString('id-ID', {day: 'numeric', month: 'long' })}</div>
-                        )}
-                    </div>
-                </div>
-                 <DialogFooter className='border-t pt-4'>
-                    <div className='flex w-full justify-between'>
-                        <Button variant="outline" onClick={() => onOpenChange(false)}>Tutup</Button>
-                        <div className='flex gap-2'>
-                            <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/> Ubah</Button>
-                            <Button variant="destructive" onClick={() => onDeleteClick(customer)}><Trash2 className="mr-2 h-4 w-4"/> Hapus</Button>
-                        </div>
-                    </div>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-    );
-}
+import { cn } from '@/lib/utils';
 
 export default function Customers() {
-  const { activeStore } = useAuth();
+  const { activeStore, currentUser } = useAuth();
   const { dashboardData, isLoading, refreshData } = useDashboard();
   const customers = dashboardData?.customers || [];
+  const isAdmin = currentUser?.role === 'admin';
 
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [selectedCustomer, setSelectedCustomer] = React.useState<Customer | null>(null);
@@ -198,7 +159,7 @@ export default function Customers() {
                 ))
               ) : (
                 customers.map((customer) => (
-                    <TableRow key={customer.id} onClick={() => handleRowClick(customer)} className="cursor-pointer">
+                    <TableRow key={customer.id} onClick={() => handleRowClick(customer)} className={cn(isAdmin && 'cursor-pointer')}>
                     <TableCell>
                         <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-primary/50">
@@ -234,12 +195,42 @@ export default function Customers() {
         </CardContent>
       </Card>
       {selectedCustomer && (
-        <CustomerDetailsDialog
-            customer={selectedCustomer}
-            open={!!selectedCustomer}
-            onOpenChange={() => setSelectedCustomer(null)}
-            onDeleteClick={handleDeleteClick}
-        />
+        <Dialog open={!!selectedCustomer} onOpenChange={() => setSelectedCustomer(null)}>
+            <DialogContent className="sm:max-w-md">
+                <DialogHeader>
+                    <DialogTitle className="font-headline tracking-wider">{selectedCustomer.name}</DialogTitle>
+                    <DialogDescription>
+                        ID Pelanggan: {selectedCustomer.id}
+                    </DialogDescription>
+                </DialogHeader>
+                <div className="flex items-center gap-4 py-4">
+                    <Avatar className="h-24 w-24 border-4 border-primary/50">
+                        <AvatarImage src={selectedCustomer.avatarUrl} alt={selectedCustomer.name} />
+                        <AvatarFallback>{selectedCustomer.name.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="space-y-1 text-sm">
+                        <div><strong>Telepon:</strong> {selectedCustomer.phone}</div>
+                        <div className="flex items-center gap-1"><strong>Tier:</strong> <Badge variant={selectedCustomer.memberTier === 'Gold' ? 'default' : 'secondary'}>{selectedCustomer.memberTier}</Badge></div>
+                        <div><strong>Poin:</strong> {selectedCustomer.loyaltyPoints.toLocaleString('id-ID')}</div>
+                        <div><strong>Bergabung:</strong> {new Date(selectedCustomer.joinDate).toLocaleDateString('id-ID', { year: 'numeric', month: 'long', day: 'numeric' })}</div>
+                        {new Date(selectedCustomer.birthDate).getFullYear() > 1970 && (
+                             <div><strong>Ulang Tahun:</strong> {new Date(selectedCustomer.birthDate).toLocaleDateString('id-ID', {day: 'numeric', month: 'long' })}</div>
+                        )}
+                    </div>
+                </div>
+                 <DialogFooter className='border-t pt-4'>
+                    <div className='flex w-full justify-between'>
+                        <Button variant="outline" onClick={() => setSelectedCustomer(null)}>Tutup</Button>
+                        {isAdmin && (
+                            <div className='flex gap-2'>
+                                <Button variant="outline" disabled><Edit className="mr-2 h-4 w-4"/> Ubah</Button>
+                                <Button variant="destructive" onClick={() => handleDeleteClick(selectedCustomer)}><Trash2 className="mr-2 h-4 w-4"/> Hapus</Button>
+                            </div>
+                        )}
+                    </div>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
       )}
        <AlertDialog open={!!customerToDelete} onOpenChange={() => setCustomerToDelete(null)}>
         <AlertDialogContent>

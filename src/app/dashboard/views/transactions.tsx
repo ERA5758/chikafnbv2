@@ -22,14 +22,6 @@ import { Badge } from '@/components/ui/badge';
 import { Button } from '@/components/ui/button';
 import { MoreHorizontal, Volume2, Send, CheckCircle, Loader, Calendar as CalendarIcon, Printer, Sparkles, CreditCard, Undo2 } from 'lucide-react';
 import {
-  DropdownMenu,
-  DropdownMenuContent,
-  DropdownMenuItem,
-  DropdownMenuLabel,
-  DropdownMenuSeparator,
-  DropdownMenuTrigger,
-} from '@/components/ui/dropdown-menu';
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -88,44 +80,15 @@ export function TransactionDetailsDialog({
     const { toast } = useToast();
     const { refreshData, dashboardData } = useDashboard();
     
-    // States for this dialog's actions
     const [isActionLoading, setIsActionLoading] = React.useState(false);
-    const [generatingTextId, setGeneratingTextId] = React.useState<string | null>(null);
-    const [sentWhatsappIds, setSentWhatsappIds] = React.useState<Set<string>>(new Set());
     const [transactionToRefund, setTransactionToRefund] = React.useState<Transaction | null>(null);
     const [transactionToPay, setTransactionToPay] = React.useState<Transaction | null>(null);
     const [paymentMethodForDialog, setPaymentMethodForDialog] = React.useState<'Cash' | 'Card' | 'QRIS'>('Cash');
 
     const staff = (users || []).find(u => u.id === transaction.staffId);
     const isRefundable = transaction.status !== 'Dibatalkan';
-    const { customers, feeSettings } = dashboardData;
+    const { feeSettings } = dashboardData;
     
-    const handleGenerateFollowUp = async (transaction: Transaction) => {
-        setGeneratingTextId(transaction.id);
-        try {
-            const idToken = await auth.currentUser?.getIdToken(true);
-            if (!idToken || !activeStore) throw new Error("Sesi atau toko tidak valid.");
-
-            const customer = customers.find(c => c.id === transaction.customerId);
-
-            const response = await fetch('/api/order-ready-notification', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${idToken}`},
-                body: JSON.stringify({ transaction, customer, store: activeStore })
-            });
-            if (!response.ok) {
-                const err = await response.json();
-                throw new Error(err.error || 'Gagal mengirim notifikasi.');
-            }
-            toast({ title: "Notifikasi Terkirim!", description: "Notifikasi WhatsApp telah dikirim ke pelanggan."});
-            setSentWhatsappIds(prev => new Set(prev).add(transaction.id));
-        } catch (error) {
-            toast({ variant: 'destructive', title: 'Gagal Mengirim Notifikasi', description: (error as Error).message });
-        } finally {
-            setGeneratingTextId(null);
-        }
-    };
-
     const handleProcessPayment = async () => {
         if (!transactionToPay || !activeStore) return;
         setIsActionLoading(true);
@@ -156,7 +119,7 @@ export function TransactionDetailsDialog({
                         transactionRun.update(productRef, { stock: increment(item.quantity) });
                      }
                 }
-                if (transactionToRefund.customerId !== 'N/A' && customers.find(c => c.id === transactionToRefund.customerId)) {
+                if (transactionToRefund.customerId !== 'N/A' && dashboardData.customers.find(c => c.id === transactionToRefund.customerId)) {
                     const customerRef = doc(db, 'stores', activeStore.id, 'customers', transactionToRefund.customerId);
                     const pointsToRevert = transactionToRefund.pointsRedeemed - transactionToRefund.pointsEarned;
                     transactionRun.update(customerRef, { loyaltyPoints: increment(pointsToRevert) });
@@ -177,7 +140,6 @@ export function TransactionDetailsDialog({
             setIsActionLoading(false);
         }
     }
-
 
     return (
         <>
@@ -273,26 +235,8 @@ export function TransactionDetailsDialog({
                                 <Sparkles className="mr-2 h-4 w-4" /> Follow Up Cerdas
                             </Button>
                           )}
-                           <DropdownMenu>
-                                <DropdownMenuTrigger asChild>
-                                <Button aria-haspopup="true" size="icon" variant="ghost" className="h-8 w-8">
-                                    <MoreHorizontal className="h-4 w-4" />
-                                    <span className="sr-only">Aksi Lainnya</span>
-                                </Button>
-                                </DropdownMenuTrigger>
-                                <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Aksi Lainnya</DropdownMenuLabel>
-                                <DropdownMenuItem onClick={() => onPrintRequest(transaction)}><Printer className="mr-2 h-4 w-4"/> Cetak Struk</DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem 
-                                  className="text-destructive focus:text-destructive focus:bg-destructive/10"
-                                  onClick={() => setTransactionToRefund(transaction)}
-                                  disabled={!isRefundable}
-                                >
-                                    <Undo2 className="mr-2 h-4 w-4"/> Pengembalian Dana
-                                </DropdownMenuItem>
-                                </DropdownMenuContent>
-                            </DropdownMenu>
+                           <Button variant="outline" size="sm" className="h-8 gap-2" onClick={() => onPrintRequest(transaction)}><Printer className="mr-2 h-4 w-4"/> Cetak Struk</Button>
+                           <Button variant="destructive" size="sm" className="h-8 gap-2" onClick={() => setTransactionToRefund(transaction)} disabled={!isRefundable}><Undo2 className="mr-2 h-4 w-4"/> Batalkan</Button>
                         </div>
                     </div>
                 </DialogFooter>
@@ -352,15 +296,9 @@ export function TransactionDetailsDialog({
 type StatusFilter = 'Semua' | 'Diproses' | 'Selesai' | 'Belum Dibayar' | 'Dibatalkan';
 
 export default function Transactions({ onDetailRequest, onPrintRequest }: TransactionsProps) {
-  const { dashboardData, isLoading, refreshData } = useDashboard();
+  const { dashboardData, isLoading } = useDashboard();
   const { transactions } = dashboardData || {};
-  const [isActionLoading, setIsActionLoading] = React.useState(false);
-  const [transactionToPay, setTransactionToPay] = React.useState<Transaction | null>(null);
-  const [transactionToComplete, setTransactionToComplete] = React.useState<Transaction | null>(null);
-  const [paymentMethodForDialog, setPaymentMethodForDialog] = React.useState<'Cash' | 'Card' | 'QRIS'>('Cash');
-  const { activeStore } = useAuth();
-  const { toast } = useToast();
-
+  
   const [date, setDate] = React.useState<DateRange | undefined>({
     from: startOfMonth(new Date()),
     to: endOfMonth(new Date()),
@@ -400,47 +338,6 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
   React.useEffect(() => {
       setCurrentPage(1);
   }, [date, statusFilter]);
-
-  const handleProcessPayment = async () => {
-        if (!transactionToPay || !activeStore) return;
-        setIsActionLoading(true);
-        try {
-            const transactionRef = doc(db, 'stores', activeStore.id, 'transactions', transactionToPay.id);
-            await updateDoc(transactionRef, { status: 'Selesai Dibayar', paymentMethod: paymentMethodForDialog });
-            toast({ title: "Pembayaran Berhasil", description: `Pembayaran untuk nota #${String(transactionToPay.receiptNumber).padStart(6, '0')} telah diterima.` });
-            refreshData();
-            setTransactionToPay(null);
-        } catch (error) {
-            toast({ variant: "destructive", title: "Gagal Memproses Pembayaran", description: (error as Error).message });
-        } finally {
-            setIsActionLoading(false);
-        }
-    };
-      
-  const handleCompleteTransaction = async () => {
-    if (!transactionToComplete || !activeStore) return;
-    setIsActionLoading(true);
-    try {
-        const batch = writeBatch(db);
-        const transactionRef = doc(db, 'stores', activeStore.id, 'transactions', transactionToComplete.id);
-        batch.update(transactionRef, { status: 'Selesai' });
-
-        if (transactionToComplete.tableId) {
-            const tableRef = doc(db, 'stores', activeStore.id, 'tables', transactionToComplete.tableId);
-            const tableDoc = await getDoc(tableRef);
-            if (tableDoc.exists()) batch.update(tableRef, { status: 'Menunggu Dibersihkan' });
-        }
-        await batch.commit();
-        toast({ title: 'Pesanan Selesai!', description: `Status pesanan untuk ${transactionToComplete.customerName} telah diperbarui.`});
-        refreshData();
-        setTransactionToComplete(null);
-    } catch (error) {
-        toast({ variant: 'destructive', title: 'Gagal Menyelesaikan Pesanan' });
-    } finally {
-        setIsActionLoading(false);
-    }
-  }
-
 
   return (
     <>
@@ -544,51 +441,6 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
           </CardContent>
         </Card>
       </div>
-
-       <Dialog open={!!transactionToPay} onOpenChange={() => setTransactionToPay(null)}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Proses Pembayaran</DialogTitle>
-                    <DialogDescription>Pilih metode pembayaran untuk transaksi nota #{String(transactionToPay?.receiptNumber).padStart(6, '0')}.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                    <div className="text-center">
-                        <p className="text-muted-foreground">Total Tagihan</p>
-                        <p className="text-3xl font-bold">Rp {transactionToPay?.totalAmount.toLocaleString('id-ID')}</p>
-                    </div>
-                    <Select value={paymentMethodForDialog} onValueChange={(value: 'Cash' | 'Card' | 'QRIS') => setPaymentMethodForDialog(value)}>
-                        <SelectTrigger><SelectValue placeholder="Pilih Metode Pembayaran"/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Cash">Tunai</SelectItem>
-                            <SelectItem value="Card">Kartu</SelectItem>
-                            <SelectItem value="QRIS">QRIS</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => setTransactionToPay(null)}>Batal</Button>
-                    <Button onClick={handleProcessPayment} disabled={isActionLoading}>
-                        {isActionLoading && <Loader className="mr-2 h-4 w-4 animate-spin"/>}
-                        Konfirmasi Pembayaran
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
-      
-      <AlertDialog open={!!transactionToComplete} onOpenChange={() => setTransactionToComplete(null)}>
-        <AlertDialogContent>
-          <AlertDialogHeader>
-            <AlertDialogTitle>Selesaikan Pesanan?</AlertDialogTitle>
-            <AlertDialogDescription>
-              Anda akan menandai pesanan untuk <span className="font-bold">{transactionToComplete?.customerName}</span> sebagai selesai. Pastikan pesanan sudah diserahkan kepada pelanggan.
-            </AlertDialogDescription>
-          </AlertDialogHeader>
-          <AlertDialogFooter>
-            <AlertDialogCancel>Batal</AlertDialogCancel>
-            <AlertDialogAction onClick={handleCompleteTransaction}>Ya, Selesaikan</AlertDialogAction>
-          </AlertDialogFooter>
-        </AlertDialogContent>
-      </AlertDialog>
     </>
   );
 }
