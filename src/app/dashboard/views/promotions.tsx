@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -349,7 +350,7 @@ export default function Promotions() {
               </TableHeader>
               <TableBody>
                 {(redemptionOptions || []).map((option) => (
-                  <TableRow key={option.id}>
+                  <TableRow key={option.id} className="cursor-pointer">
                     <TableCell className="font-medium">{option.description}</TableCell>
                     <TableCell className="text-center">
                       <Badge variant={option.isActive ? 'default' : 'destructive'}>
@@ -366,7 +367,7 @@ export default function Promotions() {
                       <TableCell className="text-right">
                         <DropdownMenu>
                           <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                               <MoreHorizontal className="h-4 w-4" />
                               <span className="sr-only">Toggle menu</span>
                             </Button>

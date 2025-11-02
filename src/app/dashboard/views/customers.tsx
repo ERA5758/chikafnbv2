@@ -97,7 +97,7 @@ export default function Customers() {
   const [customerToDelete, setCustomerToDelete] = React.useState<Customer | null>(null);
   const { toast } = useToast();
 
-  const handleViewDetails = (customer: Customer) => {
+  const handleRowClick = (customer: Customer) => {
     setSelectedCustomer(customer);
   };
   
@@ -147,7 +147,7 @@ export default function Customers() {
               <DialogTrigger asChild>
                 <Button size="sm" className="gap-1">
                   <PlusCircle className="h-3.5 w-3.5" />
-                  <span className="sr-only sm:not-sr-only sm:whitespace-rap">
+                  <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                     Tambah Pelanggan
                   </span>
                 </Button>
@@ -195,7 +195,7 @@ export default function Customers() {
                 ))
               ) : (
                 customers.map((customer) => (
-                    <TableRow key={customer.id}>
+                    <TableRow key={customer.id} onClick={() => handleRowClick(customer)} className="cursor-pointer">
                     <TableCell>
                         <div className="flex items-center gap-3">
                         <Avatar className="h-10 w-10 border-2 border-primary/50">
@@ -226,14 +226,14 @@ export default function Customers() {
                     <TableCell className="text-right">
                         <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                            <Button aria-haspopup="true" size="icon" variant="ghost">
+                            <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Toggle menu</span>
                             </Button>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Aksi</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => handleViewDetails(customer)}>
+                            <DropdownMenuItem onClick={() => handleRowClick(customer)}>
                                 Lihat Detail
                             </DropdownMenuItem>
                             <DropdownMenuItem disabled>Ubah</DropdownMenuItem>

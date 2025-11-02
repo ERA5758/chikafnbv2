@@ -252,7 +252,7 @@ export default function Employees() {
                 ))
               ) : (
                 users.map((user) => (
-                  <TableRow key={user.id} className={user.status === 'inactive' ? 'text-muted-foreground' : ''}>
+                  <TableRow key={user.id} onClick={() => handleEditClick(user)} className={`cursor-pointer ${user.status === 'inactive' ? 'text-muted-foreground' : ''}`}>
                     <TableCell className="font-medium">{user.name}</TableCell>
                     <TableCell>{user.email}</TableCell>
                     <TableCell>
@@ -273,7 +273,7 @@ export default function Employees() {
                     <TableCell className="text-right">
                       <DropdownMenu>
                         <DropdownMenuTrigger asChild>
-                          <Button aria-haspopup="true" size="icon" variant="ghost">
+                          <Button aria-haspopup="true" size="icon" variant="ghost" onClick={(e) => e.stopPropagation()}>
                             <MoreHorizontal className="h-4 w-4" />
                             <span className="sr-only">Toggle menu</span>
                           </Button>

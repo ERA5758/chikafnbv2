@@ -93,6 +93,30 @@ function StockToggle({ product, onStockChange, isUpdating }: { product: Product;
   );
 }
 
+function ProductDetailsDialog({ product, open, onOpenChange, userRole, storeName }: { product: Product; open: boolean; onOpenChange: (open: boolean) => void; userRole: 'admin' | 'cashier' | 'superadmin' | 'kitchen'; storeName: string; }) {
+  if (!product) return null;
+
+  return (
+    <Dialog open={open} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-md">
+        <DialogHeader>
+          <DialogTitle className="font-headline tracking-wider">{product.name}</DialogTitle>
+          <DialogDescription>
+            SKU: {product.attributes.barcode || 'N/A'}
+          </DialogDescription>
+        </DialogHeader>
+        <div className="space-y-2 py-4 text-sm">
+          <div><strong>Merek:</strong> {product.attributes.brand}</div>
+          <div className="flex items-center gap-1"><strong>Kategori:</strong> <Badge variant="outline">{product.category}</Badge></div>
+          <div><strong>Stok di {storeName}:</strong> {product.stock}</div>
+          {userRole === 'admin' && <div><strong>Harga Pokok:</strong> Rp {product.costPrice.toLocaleString('id-ID')}</div>}
+          <div><strong>Harga Jual:</strong> Rp {product.price.toLocaleString('id-ID')}</div>
+          {product.description && <div className="pt-2"><strong>Deskripsi:</strong><p className="italic text-muted-foreground">{product.description}</p></div>}
+        </div>
+      </DialogContent>
+    </Dialog>
+  );
+}
 
 export default function Products() {
   const { currentUser, activeStore } = useAuth();
@@ -107,6 +131,7 @@ export default function Products() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
   const [selectedProduct, setSelectedProduct] = React.useState<Product | null>(null);
+  const [isDetailDialogOpen, setIsDetailDialogOpen] = React.useState(false);
   const [updatingStock, setUpdatingStock] = React.useState<string | null>(null);
   const { toast } = useToast();
 
@@ -141,6 +166,10 @@ export default function Products() {
     }
   };
 
+  const handleRowClick = (product: Product) => {
+    setSelectedProduct(product);
+    setIsDetailDialogOpen(true);
+  };
 
   const handleEditClick = (product: Product) => {
     setSelectedProduct(product);
@@ -298,7 +327,7 @@ export default function Products() {
               {isAdmin && (
                 <Dialog open={isAddDialogOpen} onOpenChange={setIsAddDialogOpen}>
                     <DialogTrigger asChild>
-                    <Button size="sm" className="h-10 gap-1" disabled={!activeStore}>
+                    <Button data-tour="add-product-button" size="sm" className="h-10 gap-1" disabled={!activeStore}>
                         <PlusCircle className="h-3.5 w-3.5" />
                         <span className="sr-only sm:not-sr-only sm:whitespace-nowrap">
                         Tambah Produk
@@ -351,7 +380,7 @@ export default function Products() {
                 ))
               ) : (
                 filteredProducts.map((product) => (
-                  <TableRow key={product.id}>
+                  <TableRow key={product.id} onClick={() => handleRowClick(product)} className="cursor-pointer">
                     <TableCell className="font-medium">{product.name}</TableCell>
                     <TableCell>
                       <Badge variant="outline">{product.category}</Badge>
@@ -399,6 +428,16 @@ export default function Products() {
           </Table>
         </CardContent>
       </Card>
+  
+      {selectedProduct && activeStore && (
+        <ProductDetailsDialog 
+          product={selectedProduct}
+          open={isDetailDialogOpen}
+          onOpenChange={setIsDetailDialogOpen}
+          userRole={userRole}
+          storeName={activeStore.name}
+        />
+      )}
   
       {selectedProduct && isEditDialogOpen && activeStore && (
           <Dialog open={isEditDialogOpen} onOpenChange={setIsEditDialogOpen}>
