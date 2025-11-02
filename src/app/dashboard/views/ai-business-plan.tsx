@@ -47,7 +47,7 @@ export default function AIBusinessPlan() {
       const daysCheck = daysSinceFirstTx >= REQUIRED_DAYS;
       const txCheck = transactionCount >= REQUIRED_TRANSACTIONS;
       
-      setDaysProgress(Math.min(daysSinceFirstTx, REQUIRED_DAYS));
+      setDaysProgress(Math.min(daysSinceFirstTx, REQUIRED_DAYS) || 0);
       setTxProgress(transactionCount);
       
       setIsEligible(daysCheck && txCheck);
