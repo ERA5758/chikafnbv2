@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -88,6 +89,7 @@ export default function Promotions() {
 
   const [isAddDialogOpen, setIsAddDialogOpen] = React.useState(false);
   const [selectedPromotion, setSelectedPromotion] = React.useState<RedemptionOption | null>(null);
+  const [promotionToDelete, setPromotionToDelete] = React.useState<RedemptionOption | null>(null);
   const [isDetailDialogOpen, setIsDetailDialogOpen] = React.useState(false);
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = React.useState(false);
 
@@ -98,19 +100,20 @@ export default function Promotions() {
   
   const handleDeleteClick = (option: RedemptionOption) => {
     setSelectedPromotion(option);
+    setPromotionToDelete(option);
     setIsDetailDialogOpen(false); // Close detail before opening delete
     setIsDeleteDialogOpen(true);
   };
 
   const handleConfirmDelete = async () => {
-    if (!selectedPromotion || !activeStore) return;
+    if (!promotionToDelete || !activeStore) return;
 
     try {
-      await deleteDoc(doc(db, "stores", activeStore.id, "redemptionOptions", selectedPromotion.id));
+      await deleteDoc(doc(db, "stores", activeStore.id, "redemptionOptions", promotionToDelete.id));
       refreshData();
       toast({
         title: 'Promosi Dihapus!',
-        description: `Promo "${selectedPromotion.description}" telah berhasil dihapus.`,
+        description: `Promo "${promotionToDelete.description}" telah berhasil dihapus.`,
       });
     } catch (error) {
       console.error("Error deleting promotion: ", error);
@@ -122,6 +125,7 @@ export default function Promotions() {
     }
 
     setIsDeleteDialogOpen(false);
+    setPromotionToDelete(null);
     setSelectedPromotion(null);
   };
 
@@ -341,8 +345,8 @@ export default function Promotions() {
               <TableHeader>
                 <TableRow>
                   <TableHead>Deskripsi</TableHead>
-                  <TableHead className="text-center">Status</TableHead>
-                  <TableHead className="hidden md:table-cell text-right">Poin Dibutuhkan</TableHead>
+                  <TableHead className="text-center hidden md:table-cell">Status</TableHead>
+                  <TableHead className="hidden md:table-cell text-right">Poin</TableHead>
                   <TableHead className="hidden md:table-cell text-right">Nilai (Rp)</TableHead>
                 </TableRow>
               </TableHeader>
@@ -350,7 +354,7 @@ export default function Promotions() {
                 {(redemptionOptions || []).map((option) => (
                   <TableRow key={option.id} onClick={() => isAdmin && handleRowClick(option)} className={cn(isAdmin && 'cursor-pointer')}>
                     <TableCell className="font-medium">{option.description}</TableCell>
-                    <TableCell className="text-center">
+                    <TableCell className="text-center hidden md:table-cell">
                       <Badge variant={option.isActive ? 'default' : 'destructive'}>
                         {option.isActive ? 'Aktif' : 'Non-Aktif'}
                       </Badge>
