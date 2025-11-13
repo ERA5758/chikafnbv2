@@ -1,53 +1,20 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseAdmin } from '@/lib/server/firebase-admin';
-import { URLSearchParams } from 'url';
-
-// --- Start of Inlined WhatsApp Logic ---
-
-type WhatsappSettings = {
-    deviceId: string;
-    adminGroup: string;
-};
-
-const defaultWhatsappSettings: WhatsappSettings = {
-    deviceId: 'fa254b2588ad7626d647da23be4d6a08',
-    adminGroup: 'SPV ERA MMBP',
-};
-
-async function getWhatsappSettingsForApi(): Promise<WhatsappSettings> {
-    const { db: adminDb } = getFirebaseAdmin();
-    const settingsDocRef = adminDb.collection('appSettings').doc('whatsappConfig');
-    try {
-        const docSnap = await settingsDocRef.get();
-        if (docSnap.exists()) {
-            return { ...defaultWhatsappSettings, ...(docSnap.data() as WhatsappSettings) };
-        } else {
-            await settingsDocRef.set(defaultWhatsappSettings);
-            return defaultWhatsappSettings;
-        }
-    } catch (error) {
-        console.error("Error fetching WhatsApp settings:", error);
-        return defaultWhatsappSettings;
-    }
-}
+import { getWhatsappSettings } from '@/lib/server/whatsapp-settings';
 
 async function internalSendWhatsapp(deviceId: string, target: string, message: string, isGroup: boolean = false) {
-    const body = new URLSearchParams();
-    body.append('device_id', deviceId);
-    body.append(isGroup ? 'group' : 'number', target);
-    body.append('message', message);
-    
+    const formData = new FormData();
+    formData.append('device_id', deviceId);
+    formData.append(isGroup ? 'group' : 'number', target);
+    formData.append('message', message);
     const endpoint = isGroup ? 'sendGroup' : 'send';
     const webhookUrl = `https://app.whacenter.com/api/${endpoint}`;
 
     try {
         const response = await fetch(webhookUrl, {
             method: 'POST',
-            body: body,
-            headers: {
-                'Content-Type': 'application/x-www-form-urlencoded'
-            }
+            body: formData,
         });
 
         if (!response.ok) {
@@ -75,9 +42,6 @@ function formatWhatsappNumber(nomor: string | number): string {
     }
     return nomorStr;
 }
-
-// --- End of Inlined WhatsApp Logic ---
-
 
 export async function POST(req: NextRequest) {
     const { auth, db } = getFirebaseAdmin();
@@ -119,7 +83,7 @@ export async function POST(req: NextRequest) {
         // --- Handle WhatsApp notifications in the background ---
         (async () => {
             try {
-                const { deviceId, adminGroup } = await getWhatsappSettingsForApi();
+                const { deviceId, adminGroup } = await getWhatsappSettings("platform");
                 if (!deviceId) {
                     console.warn("WhatsApp deviceId not configured. Skipping notifications.");
                     return;
