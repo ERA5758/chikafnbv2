@@ -8,8 +8,8 @@ export type WhatsappSettings = {
 
 // Default settings if the document doesn't exist in Firestore.
 export const defaultWhatsappSettings: WhatsappSettings = {
-    deviceId: 'fa254b2588ad7626d647da23be4d6a08',
-    adminGroup: 'SPV ERA MMBP',
+    deviceId: process.env.WHATSAPP_DEVICE_ID || 'fa254b2588ad7626d647da23be4d6a08',
+    adminGroup: process.env.WHATSAPP_ADMIN_GROUP || 'SPV ERA MMBP',
 };
 
 /**
@@ -26,10 +26,15 @@ export async function getWhatsappSettings(storeId: string): Promise<WhatsappSett
 
         if (docSnap.exists()) {
             // Merge with defaults to ensure all properties are present
-            return { ...defaultWhatsappSettings, ...docSnap.data() as WhatsappSettings };
+            const firestoreSettings = docSnap.data() as Partial<WhatsappSettings>;
+            // Environment variables take precedence over Firestore, which takes precedence over hardcoded defaults
+            return {
+                deviceId: process.env.WHATSAPP_DEVICE_ID || firestoreSettings.deviceId || defaultWhatsappSettings.deviceId,
+                adminGroup: process.env.WHATSAPP_ADMIN_GROUP || firestoreSettings.adminGroup || defaultWhatsappSettings.adminGroup,
+            };
         } else {
-            console.warn(`WhatsApp settings not found, creating document with default values.`);
-            // If the document doesn't exist, create it with default values
+            console.warn(`WhatsApp settings not found, creating document with default values from environment or hardcoded.`);
+            // If the document doesn't exist, create it with default values from env or hardcoded
             await settingsDocRef.set(defaultWhatsappSettings);
             return defaultWhatsappSettings;
         }
