@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -6,7 +7,7 @@ import type { Store, Product, ProductCategory, RedemptionOption, Customer, Order
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
-import { ChefHat, PackageX, MessageCircle, Sparkles, Send, Loader, Gift, ShoppingCart, PlusCircle, MinusCircle, XCircle, LogIn, UserCircle, LogOut, Crown, Coins, Receipt, Percent, HandCoins, MessageSquare, QrCode as QrCodeIcon } from 'lucide-react';
+import { ChefHat, PackageX, MessageCircle, Sparkles, Send, Loader, Gift, ShoppingCart, PlusCircle, MinusCircle, XCircle, LogIn, UserCircle, LogOut, Crown, Coins, Receipt, Percent, HandCoins, MessageSquare, QrCode as QrCodeIcon, Wallet } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -512,6 +513,7 @@ export default function CatalogPage() {
                 taxAmount: taxAmount,
                 serviceFeeAmount: serviceFeeAmount,
                 totalAmount: totalAmount,
+                paymentMethod: paymentMethod,
             };
             const response = await fetch('/api/catalog/order', {
                 method: 'POST',
@@ -808,7 +810,7 @@ export default function CatalogPage() {
                             <CardTitle className="text-base">Opsi Pembayaran</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
-                             <Button variant={paymentMethod === 'CASHIER' ? 'default' : 'outline'} className="w-full" onClick={() => { toast({ title: 'Opsi Terpilih: Bayar di Kasir', description: 'Silakan tunjukkan pesanan ini di kasir untuk melanjutkan pembayaran.' }); setPaymentMethod('CASHIER'); }}>Bayar di Kasir</Button>
+                             <Button variant={paymentMethod === 'CASHIER' ? 'default' : 'outline'} className="w-full" onClick={() => setPaymentMethod('CASHIER')}>Bayar di Kasir</Button>
                              <Button variant={paymentMethod === 'QRIS' ? 'default' : 'outline'} disabled={!store.qrisImageUrl} onClick={() => { setIsQrisDialogOpen(true); setPaymentMethod('QRIS'); }}>
                                 <QrCodeIcon className="mr-2 h-4 w-4"/> Bayar QRIS
                             </Button>

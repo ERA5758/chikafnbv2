@@ -1,4 +1,5 @@
 
+
 import { NextRequest, NextResponse } from 'next/server';
 import { getFirebaseAdmin } from '@/lib/server/firebase-admin';
 import type { OrderPayload, Table } from '@/lib/types';
@@ -8,7 +9,7 @@ export async function POST(req: NextRequest) {
     const { db } = getFirebaseAdmin();
     try {
         const payload: OrderPayload = await req.json();
-        const { storeId, customer, cart, subtotal, taxAmount, serviceFeeAmount, totalAmount } = payload;
+        const { storeId, customer, cart, subtotal, taxAmount, serviceFeeAmount, totalAmount, paymentMethod } = payload;
 
         if (!storeId || !customer || !cart || cart.length === 0) {
             return NextResponse.json({ error: 'Data pesanan tidak lengkap.' }, { status: 400 });
@@ -48,7 +49,8 @@ export async function POST(req: NextRequest) {
                         name: customer.name,
                         phone: customer.phone,
                         avatarUrl: customer.avatarUrl,
-                    }
+                    },
+                    paymentMethod: paymentMethod, // Save the payment method
                 }
             };
             

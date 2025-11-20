@@ -41,7 +41,7 @@ import {
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
-import { PlusCircle, Armchair, Trash2, Edit, MoreVertical, Check, BookMarked, SprayCan, Loader2, ServerCog } from 'lucide-react';
+import { PlusCircle, Armchair, Trash2, Edit, MoreVertical, Check, BookMarked, SprayCan, Loader2, ServerCog, Wallet, QrCode } from 'lucide-react';
 import type { Table, TableStatus } from '@/lib/types';
 import { useAuth } from '@/contexts/auth-context';
 import { useDashboard } from '@/contexts/dashboard-context';
@@ -297,6 +297,22 @@ export default function Tables() {
             return '';
     }
   }
+  
+  const getPaymentIndicator = (table: Table) => {
+      if (table.status !== 'Terisi' || !table.isVirtual || !table.currentOrder?.paymentMethod) {
+          return null;
+      }
+
+      if (table.currentOrder.paymentMethod === 'QRIS') {
+          return <QrCode className="h-4 w-4 text-green-600" />;
+      }
+      
+      if (table.currentOrder.paymentMethod === 'CASHIER') {
+          return <Wallet className="h-4 w-4 text-blue-600" />;
+      }
+
+      return null;
+  };
 
   return (
     <>
@@ -411,10 +427,11 @@ export default function Tables() {
                 key={table.id}
                 onClick={() => handleTableClick(table)}
                 className={cn(
-                    "flex flex-col justify-between p-4 cursor-pointer transition-all hover:shadow-lg",
+                    "flex flex-col justify-between p-4 cursor-pointer transition-all hover:shadow-lg relative",
                     getStatusColor(table.status)
                 )}
               >
+                <div className="absolute top-2 right-2">{getPaymentIndicator(table)}</div>
                 <CardHeader className="p-0 flex-row items-start justify-between">
                   <div className="flex items-center gap-2">
                     <Armchair className="h-5 w-5" />

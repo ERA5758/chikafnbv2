@@ -144,6 +144,7 @@ export type OrderPayload = {
     taxAmount: number;
     serviceFeeAmount: number;
     totalAmount: number;
+    paymentMethod: 'CASHIER' | 'QRIS';
 };
 
 export type PendingOrder = {
@@ -192,6 +193,7 @@ export type TableOrder = {
   totalAmount: number;
   orderTime: string; // ISO 8601
   customer?: TableOrderCustomer;
+  paymentMethod?: 'CASHIER' | 'QRIS';
 };
 
 export type Table = {
