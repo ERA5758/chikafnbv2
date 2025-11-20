@@ -110,7 +110,7 @@ export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest, onPa
                                         </div>
                                     ))}
                                 </CardContent>
-                                <CardFooter className="flex gap-2">
+                                <CardFooter className="grid grid-cols-2 gap-2">
                                      <Button 
                                         variant="outline"
                                         className="w-full" 
