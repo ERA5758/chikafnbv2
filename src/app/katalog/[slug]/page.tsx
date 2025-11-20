@@ -285,6 +285,38 @@ function NoteDialog({ open, onOpenChange, note, onSave }: { open: boolean, onOpe
     );
 }
 
+function ProductDetailDialog({ product, open, onOpenChange, onAddToCart }: { product: Product | null, open: boolean, onOpenChange: (open: boolean) => void, onAddToCart: (product: Product) => void }) {
+    if (!product) return null;
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="max-w-md">
+                <Card className="border-none shadow-none">
+                    <div className="relative aspect-square">
+                        <Image src={product.imageUrl} alt={product.name} fill className="object-cover rounded-t-lg" unoptimized/>
+                    </div>
+                    <CardHeader>
+                        <CardTitle className="text-2xl font-bold">{product.name}</CardTitle>
+                        <CardDescription className="text-primary font-bold text-lg">
+                            Rp {product.price.toLocaleString('id-ID')}
+                        </CardDescription>
+                    </CardHeader>
+                    {product.description && (
+                        <CardContent>
+                            <p className="text-muted-foreground">{product.description}</p>
+                        </CardContent>
+                    )}
+                    <CardFooter>
+                        <Button className="w-full" onClick={() => { onAddToCart(product); onOpenChange(false); }}>
+                            <PlusCircle className="mr-2 h-4 w-4"/> Tambah ke Keranjang
+                        </Button>
+                    </CardFooter>
+                </Card>
+            </DialogContent>
+        </Dialog>
+    )
+}
+
+
 export default function CatalogPage() {
     const params = useParams();
     const slug = params.slug as string;
@@ -308,6 +340,7 @@ export default function CatalogPage() {
     const [isAuthDialogOpen, setIsAuthDialogOpen] = React.useState(false);
     const [loggedInCustomer, setLoggedInCustomer] = React.useState<Customer | null>(null);
     const [activeOrder, setActiveOrder] = React.useState<TableOrder | null>(null);
+    const [selectedProductForDetail, setSelectedProductForDetail] = React.useState<Product | null>(null);
 
     const sessionKey = `chika-customer-session-${slug}`;
     const activeOrderKey = `chika-active-order-${slug}`;
@@ -428,7 +461,8 @@ export default function CatalogPage() {
         );
     };
 
-    const handleAskAI = (product: Product) => {
+    const handleAskAI = (e: React.MouseEvent, product: Product) => {
+        e.stopPropagation();
         setCurrentProductContext({
             name: product.name,
             description: product.description,
@@ -618,7 +652,7 @@ export default function CatalogPage() {
                                     {productsInCategory.map(product => {
                                         const itemInCart = cart.find(item => item.productId === product.id);
                                         return (
-                                        <Card key={product.id} className="overflow-hidden group flex flex-col">
+                                        <Card key={product.id} className="overflow-hidden group flex flex-col cursor-pointer" onClick={() => setSelectedProductForDetail(product)}>
                                             <div className="relative aspect-square">
                                                 <Image src={product.imageUrl} alt={product.name} fill className="object-cover transition-transform group-hover:scale-105" unoptimized/>
                                                 {product.stock === 0 && (
@@ -638,28 +672,28 @@ export default function CatalogPage() {
                                             </CardHeader>
                                             {product.description && (
                                                 <CardContent className="flex-grow">
-                                                    <p className="text-sm text-muted-foreground">{product.description}</p>
+                                                    <p className="text-sm text-muted-foreground line-clamp-2">{product.description}</p>
                                                 </CardContent>
                                             )}
                                              <CardFooter className="flex-col items-stretch gap-2">
                                                 {itemInCart?.notes && (
-                                                    <Button variant="outline" size="sm" className="w-full text-xs text-muted-foreground truncate" onClick={() => setNoteProduct(itemInCart)}>
+                                                    <Button variant="outline" size="sm" className="w-full text-xs text-muted-foreground truncate" onClick={(e) => { e.stopPropagation(); setNoteProduct(itemInCart); }}>
                                                         Catatan: {itemInCart.notes}
                                                     </Button>
                                                 )}
-                                                <Button variant="secondary" size="sm" className="w-full" onClick={() => handleAskAI(product)}>
+                                                <Button variant="secondary" size="sm" className="w-full" onClick={(e) => handleAskAI(e, product)}>
                                                     <Sparkles className="mr-2 h-4 w-4" /> Tanya Chika AI
                                                 </Button>
                                                 {product.stock > 0 ? (
                                                     itemInCart ? (
-                                                        <div className="flex items-center gap-2 w-full">
+                                                        <div className="flex items-center gap-2 w-full" onClick={(e) => e.stopPropagation()}>
                                                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, itemInCart.quantity - 1)}><MinusCircle className="h-4 w-4" /></Button>
                                                             <span className="font-bold text-center flex-grow">{itemInCart.quantity}</span>
                                                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => updateQuantity(product.id, itemInCart.quantity + 1)}><PlusCircle className="h-4 w-4" /></Button>
                                                             <Button variant="outline" size="icon" className="h-8 w-8" onClick={() => setNoteProduct(itemInCart)}><MessageSquare className="h-4 w-4" /></Button>
                                                         </div>
                                                     ) : (
-                                                        <Button variant="outline" className="w-full" onClick={() => addToCart(product)} disabled={!!activeOrder}>Tambah</Button>
+                                                        <Button variant="outline" className="w-full" onClick={(e) => { e.stopPropagation(); addToCart(product); }} disabled={!!activeOrder}>Tambah</Button>
                                                     )
                                                 ) : (
                                                     <Button variant="outline" className="w-full" disabled>Stok Habis</Button>
@@ -802,6 +836,12 @@ export default function CatalogPage() {
                 onSave={(newNote) => handleNoteSave(noteProduct.productId, newNote)}
             />
         )}
+        <ProductDetailDialog 
+            product={selectedProductForDetail}
+            open={!!selectedProductForDetail}
+            onOpenChange={() => setSelectedProductForDetail(null)}
+            onAddToCart={addToCart}
+        />
         </>
     );
 }
