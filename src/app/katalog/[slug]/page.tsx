@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -363,6 +362,7 @@ export default function CatalogPage() {
     const [activeOrder, setActiveOrder] = React.useState<TableOrder | null>(null);
     const [selectedProductForDetail, setSelectedProductForDetail] = React.useState<Product | null>(null);
     const [isQrisDialogOpen, setIsQrisDialogOpen] = React.useState(false);
+    const [paymentMethod, setPaymentMethod] = React.useState<'CASHIER' | 'QRIS'>('CASHIER');
 
     const sessionKey = `chika-customer-session-${slug}`;
     const activeOrderKey = `chika-active-order-${slug}`;
@@ -808,8 +808,8 @@ export default function CatalogPage() {
                             <CardTitle className="text-base">Opsi Pembayaran</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
-                             <Button variant="outline" className="w-full" onClick={() => toast({ title: 'Bayar di Kasir', description: 'Silakan tunjukkan pesanan ini di kasir untuk melanjutkan pembayaran.' })}>Bayar di Kasir</Button>
-                             <Button disabled={!store.qrisImageUrl} onClick={() => setIsQrisDialogOpen(true)}>
+                             <Button variant={paymentMethod === 'CASHIER' ? 'default' : 'outline'} className="w-full" onClick={() => { toast({ title: 'Opsi Terpilih: Bayar di Kasir', description: 'Silakan tunjukkan pesanan ini di kasir untuk melanjutkan pembayaran.' }); setPaymentMethod('CASHIER'); }}>Bayar di Kasir</Button>
+                             <Button variant={paymentMethod === 'QRIS' ? 'default' : 'outline'} disabled={!store.qrisImageUrl} onClick={() => { setIsQrisDialogOpen(true); setPaymentMethod('QRIS'); }}>
                                 <QrCodeIcon className="mr-2 h-4 w-4"/> Bayar QRIS
                             </Button>
                         </CardContent>
