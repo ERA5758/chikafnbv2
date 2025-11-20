@@ -222,40 +222,42 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
 
   // Effect for handling notifications based on state changes
   useEffect(() => {
-    // Check for new transactions to be processed by the kitchen
-    if (prevTransactionsRef.current.length > 0) {
-        const prevTxIds = new Set(prevTransactionsRef.current.map(t => t.id));
-        const justAdded = transactions.filter(t => !prevTxIds.has(t.id));
-        
-        if (justAdded.some(t => t.status === 'Diproses')) {
-            playNotificationSound();
-            toast({
+    const prevTxCount = prevTransactionsRef.current.length;
+    const currentTxCount = transactions.length;
+
+    if (prevTxCount > 0 && currentTxCount > prevTxCount) {
+        const newTransaction = transactions[0]; // Assuming newest is at the start
+        if (newTransaction.status === 'Diproses') {
+             playNotificationSound();
+             toast({
                 title: "🔔 Pesanan Baru untuk Dapur!",
                 description: `Ada pesanan baru yang perlu disiapkan.`,
             });
         }
     }
-    prevTransactionsRef.current = transactions;
-
-    // Check for new virtual orders on the tables view
-    if (prevTablesRef.current.length > 0) {
+    
+    // Check for new virtual tables from catalog orders
+    const prevTableCount = prevTablesRef.current.length;
+    const currentTableCount = tables.length;
+    if (prevTableCount > 0 && currentTableCount > prevTableCount) {
         const prevTableIds = new Set(prevTablesRef.current.map(t => t.id));
-        const newVirtualOrders = tables.filter(t => 
-            !prevTableIds.has(t.id) && t.isVirtual && t.currentOrder
-        );
+        const newTables = tables.filter(t => !prevTableIds.has(t.id));
         
-        if (newVirtualOrders.length > 0) {
+        const newVirtualOrder = newTables.find(t => t.isVirtual && t.status === 'Terisi');
+
+        if (newVirtualOrder) {
             playNotificationSound();
-            newVirtualOrders.forEach(table => {
-                 toast({
-                    title: "🔔 Pesanan Baru Masuk!",
-                    description: `Ada pesanan baru di ${table.name}.`,
-                });
+            toast({
+                title: "🔔 Pesanan Online Baru Masuk!",
+                description: `Pesanan baru dari ${newVirtualOrder.name} telah masuk.`,
             });
         }
     }
+
+    // Update refs for the next render
+    prevTransactionsRef.current = transactions;
     prevTablesRef.current = tables;
-    
+
   }, [transactions, tables, playNotificationSound, toast]);
 
 
