@@ -810,7 +810,7 @@ export default function CatalogPage() {
                             <CardTitle className="text-base">Opsi Pembayaran</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
-                             <Button variant={paymentMethod === 'CASHIER' ? 'default' : 'outline'} className="w-full" onClick={() => toast({title: "Opsi Terpilih", description: "Silakan tunjukkan pesanan ini di kasir untuk pembayaran."})}>Bayar di Kasir</Button>
+                             <Button variant={paymentMethod === 'CASHIER' ? 'default' : 'outline'} className="w-full" onClick={() => setPaymentMethod('CASHIER')}>Bayar di Kasir</Button>
                              <Button variant={paymentMethod === 'QRIS' ? 'default' : 'outline'} disabled={!store.qrisImageUrl} onClick={() => { setIsQrisDialogOpen(true); setPaymentMethod('QRIS'); }}>
                                 <QrCodeIcon className="mr-2 h-4 w-4"/> Bayar QRIS
                             </Button>
