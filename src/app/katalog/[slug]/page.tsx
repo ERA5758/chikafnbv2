@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -648,7 +649,7 @@ export default function CatalogPage() {
                         {Object.entries(filteredProducts).map(([category, productsInCategory]) => (
                             <section key={category} id={category.replace(/\s+/g, '-')}>
                                 <h2 className="text-2xl font-bold font-headline mb-6 border-b-2 border-primary pb-2">{category}</h2>
-                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
                                     {productsInCategory.map(product => {
                                         const itemInCart = cart.find(item => item.productId === product.id);
                                         return (
