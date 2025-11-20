@@ -373,7 +373,7 @@ export default function POS({ onPrintRequest }: POSProps) {
 
     const storeId = activeStore.id;
     const finalPaymentMethod = isPaid ? paymentMethod : 'Belum Dibayar';
-    const finalStatus = isPaid ? 'Selesai Dibayar' : 'Diproses';
+    const finalStatus = 'Diproses'; // Always 'Diproses' to send to kitchen
 
     try {
       let finalTransactionData: Transaction | null = null;
@@ -465,14 +465,14 @@ export default function POS({ onPrintRequest }: POSProps) {
         // If it's a table order, handle table state change
         if (tableId) {
             const tableRef = doc(db, 'stores', storeId, 'tables', tableId);
-            // If it's a paid transaction for a virtual table, delete the table.
-            if (isPaid && isVirtualTable) {
+            // If it's a virtual table, delete it after creating the transaction.
+            if (isVirtualTable) {
                 transaction.delete(tableRef);
             } else {
-                // Otherwise, update its status.
+                // If it's a physical table, update its status.
                 transaction.update(tableRef, {
-                    status: 'Menunggu Dibersihkan',
-                    currentOrder: null
+                    status: 'Terisi', // Should already be 'Terisi', but confirming
+                    currentOrder: null // Clear order from table as it's now a transaction
                 });
             }
         }
@@ -480,7 +480,7 @@ export default function POS({ onPrintRequest }: POSProps) {
         finalTransactionData = transactionData;
       });
 
-      toast({ title: "Transaksi Berhasil!", description: "Transaksi telah disimpan dan stok produk diperbarui." });
+      toast({ title: "Transaksi Berhasil Dibuat!", description: "Pesanan telah dikirim ke dapur untuk diproses." });
 
       if (finalTransactionData && isPaid) {
         onPrintRequest(finalTransactionData);
@@ -862,7 +862,7 @@ export default function POS({ onPrintRequest }: POSProps) {
                         : `Anda akan membuat transaksi 'Bayar Nanti' dengan total Rp ${totalAmount.toLocaleString('id-ID')}.`
                     }
                     <br/><br/>
-                    Pastikan detail pesanan sudah benar. Lanjutkan?
+                    Pesanan akan dikirim ke dapur. Pastikan detail sudah benar. Lanjutkan?
                 </AlertDialogDescription>
             </AlertDialogHeader>
             <AlertDialogFooter>
