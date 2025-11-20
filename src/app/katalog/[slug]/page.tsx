@@ -808,7 +808,7 @@ export default function CatalogPage() {
                             <CardTitle className="text-base">Opsi Pembayaran</CardTitle>
                         </CardHeader>
                         <CardContent className="grid grid-cols-2 gap-2">
-                             <Button variant="outline" className="w-full">Bayar di Kasir</Button>
+                             <Button variant="outline" className="w-full" onClick={() => toast({ title: 'Bayar di Kasir', description: 'Silakan tunjukkan pesanan ini di kasir untuk melanjutkan pembayaran.' })}>Bayar di Kasir</Button>
                              <Button disabled={!store.qrisImageUrl} onClick={() => setIsQrisDialogOpen(true)}>
                                 <QrCodeIcon className="mr-2 h-4 w-4"/> Bayar QRIS
                             </Button>
