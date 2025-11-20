@@ -58,6 +58,7 @@ export type Store = {
   socialLinks?: any;
   logoUrl?: string;
   description?: string;
+  qrisImageUrl?: string;
 };
 
 export type UserRole = 'admin' | 'cashier' | 'superadmin' | 'kitchen';

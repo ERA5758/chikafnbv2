@@ -61,6 +61,7 @@ export async function GET(req: NextRequest) {
         socialLinks: storeData?.socialLinks,
         location: storeData?.location,
         financialSettings: storeData?.financialSettings,
+        qrisImageUrl: storeData?.qrisImageUrl,
       },
       products,
       promotions,

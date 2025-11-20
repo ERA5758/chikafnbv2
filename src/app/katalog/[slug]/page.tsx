@@ -7,7 +7,7 @@ import type { Store, Product, ProductCategory, RedemptionOption, Customer, Order
 import { Card, CardContent, CardDescription, CardHeader, CardTitle, CardFooter } from '@/components/ui/card';
 import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
-import { ChefHat, PackageX, MessageCircle, Sparkles, Send, Loader, Gift, ShoppingCart, PlusCircle, MinusCircle, XCircle, LogIn, UserCircle, LogOut, Crown, Coins, Receipt, Percent, HandCoins, MessageSquare } from 'lucide-react';
+import { ChefHat, PackageX, MessageCircle, Sparkles, Send, Loader, Gift, ShoppingCart, PlusCircle, MinusCircle, XCircle, LogIn, UserCircle, LogOut, Crown, Coins, Receipt, Percent, HandCoins, MessageSquare, QrCode as QrCodeIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger, SheetClose } from '@/components/ui/sheet';
@@ -322,6 +322,21 @@ function ProductDetailDialog({ product, open, onOpenChange, onAddToCart }: { pro
     )
 }
 
+function QrisDialog({ open, onOpenChange, qrisImageUrl, storeName }: { open: boolean, onOpenChange: (open: boolean) => void, qrisImageUrl: string, storeName: string }) {
+    return (
+        <Dialog open={open} onOpenChange={onOpenChange}>
+            <DialogContent className="sm:max-w-xs">
+                <DialogHeader>
+                    <DialogTitle className="text-center font-headline tracking-wider">Bayar dengan QRIS</DialogTitle>
+                    <DialogDescription className="text-center">Scan QR Code di bawah ini untuk membayar pesanan Anda di {storeName}.</DialogDescription>
+                </DialogHeader>
+                <div className="flex justify-center p-4">
+                    <Image src={qrisImageUrl} alt={`QRIS untuk ${storeName}`} width={256} height={256} className="rounded-lg" />
+                </div>
+            </DialogContent>
+        </Dialog>
+    );
+}
 
 export default function CatalogPage() {
     const params = useParams();
@@ -347,6 +362,7 @@ export default function CatalogPage() {
     const [loggedInCustomer, setLoggedInCustomer] = React.useState<Customer | null>(null);
     const [activeOrder, setActiveOrder] = React.useState<TableOrder | null>(null);
     const [selectedProductForDetail, setSelectedProductForDetail] = React.useState<Product | null>(null);
+    const [isQrisDialogOpen, setIsQrisDialogOpen] = React.useState(false);
 
     const sessionKey = `chika-customer-session-${slug}`;
     const activeOrderKey = `chika-active-order-${slug}`;
@@ -654,7 +670,7 @@ export default function CatalogPage() {
                         {Object.entries(filteredProducts).map(([category, productsInCategory]) => (
                             <section key={category} id={category.replace(/\s+/g, '-')}>
                                 <h2 className="text-2xl font-bold font-headline mb-6 border-b-2 border-primary pb-2">{category}</h2>
-                                <div className="grid grid-cols-2 lg:grid-cols-3 gap-4 md:gap-6">
+                                <div className="grid grid-cols-2 md:grid-cols-3 gap-4 md:gap-6">
                                     {productsInCategory.map(product => {
                                         const itemInCart = cart.find(item => item.productId === product.id);
                                         return (
@@ -786,22 +802,35 @@ export default function CatalogPage() {
                         <span>Total</span>
                         <span>Rp {totalAmount.toLocaleString('id-ID')}</span>
                     </div>
+
+                    <Card>
+                        <CardHeader className="pb-2">
+                            <CardTitle className="text-base">Opsi Pembayaran</CardTitle>
+                        </CardHeader>
+                        <CardContent className="grid grid-cols-2 gap-2">
+                             <Button variant="outline" className="w-full">Bayar di Kasir</Button>
+                             <Button disabled={!store.qrisImageUrl} onClick={() => setIsQrisDialogOpen(true)}>
+                                <QrCodeIcon className="mr-2 h-4 w-4"/> Bayar QRIS
+                            </Button>
+                        </CardContent>
+                    </Card>
+
                     {loggedInCustomer ? (
                          <Button className="w-full" onClick={handleCreateOrder} disabled={isSubmittingOrder}>
                            {isSubmittingOrder ? <Loader className="animate-spin" /> : <Receipt className="mr-2 h-4 w-4"/>}
-                           Konfirmasi & Buat Pesanan
+                           Konfirmasi & Kirim Pesanan ke Kasir
                          </Button>
                     ) : (
                          <Alert>
                             <ChefHat className="h-4 w-4" />
                             <AlertTitle>Langkah Berikutnya</AlertTitle>
                             <AlertDescription>
-                                Tunjukkan pesanan ini di kasir, atau <Button variant="link" className="p-0 h-auto" onClick={() => {
+                                <Button variant="link" className="p-0 h-auto" onClick={() => {
                                     // Close the sheet before opening the dialog
                                     const closeButton = document.querySelector('button[aria-label="Close"]');
                                     if(closeButton instanceof HTMLElement) closeButton.click();
                                     setIsAuthDialogOpen(true)
-                                }}>masuk/daftar</Button> untuk memesan langsung.
+                                }}>Masuk/Daftar</Button> untuk mengirim pesanan ini ke kasir.
                             </AlertDescription>
                         </Alert>
                     )}
@@ -848,6 +877,14 @@ export default function CatalogPage() {
             onOpenChange={() => setSelectedProductForDetail(null)}
             onAddToCart={addToCart}
         />
+        {store.qrisImageUrl && (
+            <QrisDialog
+                open={isQrisDialogOpen}
+                onOpenChange={setIsQrisDialogOpen}
+                qrisImageUrl={store.qrisImageUrl}
+                storeName={store.name}
+            />
+        )}
         </>
     );
 }
