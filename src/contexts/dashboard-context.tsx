@@ -1,3 +1,4 @@
+
 'use client';
 import { createContext, useContext, useState, useEffect, useCallback, ReactNode, useRef } from 'react';
 import { db } from '@/lib/firebase';
@@ -71,6 +72,9 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
   const { currentUser, activeStore, isLoading: isAuthLoading, refreshPradanaTokenBalance } = useAuth();
   const { toast } = useToast();
   const notificationAudioRef = useRef<HTMLAudioElement>(null);
+  const prevTransactionsRef = useRef<Transaction[]>([]);
+  const prevTablesRef = useRef<Table[]>([]);
+
 
   const [stores, setStores] = useState<Store[]>([]);
   const [products, setProducts] = useState<Product[]>([]);
@@ -195,48 +199,13 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
         const pendingOrdersQuery = query(collection(db, 'pendingOrders'));
 
         const unsubTransactions = onSnapshot(transactionsQuery, (snapshot) => {
-            setTransactions(prevTransactions => {
-              const newTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
-              
-              if (prevTransactions.length > 0) {
-                  const prevTxIds = new Set(prevTransactions.map(t => t.id));
-                  const justAdded = newTransactions.filter(t => !prevTxIds.has(t.id));
-                  
-                  if (justAdded.some(t => t.status === 'Diproses')) {
-                    playNotificationSound();
-                    toast({
-                        title: "🔔 Pesanan Baru untuk Dapur!",
-                        description: `Ada pesanan baru yang perlu disiapkan.`,
-                    });
-                  }
-              }
-              return newTransactions;
-            });
+            const newTransactions = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Transaction));
+            setTransactions(newTransactions);
         }, (error) => console.error("Error listening to transactions: ", error));
 
         const unsubTables = onSnapshot(tablesQuery, (snapshot) => {
             const newTables = snapshot.docs.map(doc => ({ id: doc.id, ...doc.data() } as Table));
-            
-            setTables(prevTables => {
-                // Only notify if there are previous tables to compare against
-                if (prevTables.length > 0) {
-                    const prevTableIds = new Set(prevTables.map(t => t.id));
-                    const newVirtualOrders = newTables.filter(t => 
-                        !prevTableIds.has(t.id) && t.isVirtual && t.currentOrder
-                    );
-
-                    if (newVirtualOrders.length > 0) {
-                        playNotificationSound();
-                        newVirtualOrders.forEach(table => {
-                             toast({
-                                title: "🔔 Pesanan Baru Masuk!",
-                                description: `Ada pesanan baru di ${table.name}.`,
-                            });
-                        });
-                    }
-                }
-                return newTables;
-            });
+            setTables(newTables);
         }, (error) => console.error("Error listening to tables: ", error));
         
         const unsubPendingOrders = onSnapshot(pendingOrdersQuery, (snapshot) => {
@@ -249,7 +218,46 @@ export function DashboardProvider({ children }: { children: ReactNode }) {
     return () => {
         unsubscribes.forEach(unsub => unsub());
     };
-  }, [isAuthLoading, currentUser, activeStore, refreshData, toast, playNotificationSound]);
+  }, [isAuthLoading, currentUser, activeStore, refreshData]);
+
+  // Effect for handling notifications based on state changes
+  useEffect(() => {
+    // Check for new transactions to be processed by the kitchen
+    if (prevTransactionsRef.current.length > 0) {
+        const prevTxIds = new Set(prevTransactionsRef.current.map(t => t.id));
+        const justAdded = transactions.filter(t => !prevTxIds.has(t.id));
+        
+        if (justAdded.some(t => t.status === 'Diproses')) {
+            playNotificationSound();
+            toast({
+                title: "🔔 Pesanan Baru untuk Dapur!",
+                description: `Ada pesanan baru yang perlu disiapkan.`,
+            });
+        }
+    }
+    prevTransactionsRef.current = transactions;
+
+    // Check for new virtual orders on the tables view
+    if (prevTablesRef.current.length > 0) {
+        const prevTableIds = new Set(prevTablesRef.current.map(t => t.id));
+        const newVirtualOrders = tables.filter(t => 
+            !prevTableIds.has(t.id) && t.isVirtual && t.currentOrder
+        );
+        
+        if (newVirtualOrders.length > 0) {
+            playNotificationSound();
+            newVirtualOrders.forEach(table => {
+                 toast({
+                    title: "🔔 Pesanan Baru Masuk!",
+                    description: `Ada pesanan baru di ${table.name}.`,
+                });
+            });
+        }
+    }
+    prevTablesRef.current = tables;
+    
+  }, [transactions, tables, playNotificationSound, toast]);
+
 
   const value = {
     dashboardData: {
