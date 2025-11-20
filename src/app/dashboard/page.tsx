@@ -145,7 +145,7 @@ function DashboardContent() {
       case 'customers': return <Customers />;
       case 'customer-analytics': return <CustomerAnalytics />;
       case 'employees': return <Employees />;
-      case 'transactions': return <Transactions onDetailRequest={setTransactionForDetail} onPrintRequest={setTransactionToPrint} />;
+      case 'transactions': return <Transactions onDetailRequest={setTransactionForDetail} onPrintRequest={setTransactionToPrint} onPaymentRequest={setTransactionToPay}/>;
       case 'kitchen': return <Kitchen onFollowUpRequest={setTransactionForFollowUp} onPrintStickerRequest={setTransactionForSticker} onPaymentRequest={setTransactionToPay} />;
       case 'settings': return <Settings />;
       case 'challenges': return <Challenges />;

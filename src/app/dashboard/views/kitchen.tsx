@@ -1,4 +1,3 @@
-
 'use client';
 
 import * as React from 'react';
@@ -50,7 +49,7 @@ export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest, onPa
             const transactionData = transactionDoc.data();
             const batch = writeBatch(db);
 
-            // Update transaction status
+            // Update transaction status to 'Selesai'
             batch.update(transactionRef, { status: 'Selesai' });
 
             // If it's a table order, update table status
@@ -127,19 +126,19 @@ export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest, onPa
                                         <Printer className="mr-2 h-4 w-4" />
                                         Cetak Stiker
                                     </Button>
-                                    {order.paymentMethod === 'Belum Dibayar' && (currentUser?.role === 'admin' || currentUser?.role === 'cashier') && (
+                                    
+                                    {order.paymentMethod === 'Belum Dibayar' ? (
                                         <Button
                                             variant="secondary"
-                                            className="w-full"
+                                            className="w-full col-span-2"
                                             onClick={() => onPaymentRequest(order)}
                                         >
                                             <CreditCard className="mr-2 h-4 w-4" />
                                             Proses Pembayaran
                                         </Button>
-                                    )}
-                                    {(currentUser?.role === 'admin' || currentUser?.role === 'cashier') && (
+                                    ) : (
                                         <Button 
-                                            className="w-full" 
+                                            className="w-full col-span-2" 
                                             onClick={() => handleCompleteOrder(order.id)}
                                             disabled={completingId === order.id}
                                         >
