@@ -234,78 +234,76 @@ export default function CatalogSettings() {
             </Card>
         )}
 
-        <div className="grid md:grid-cols-2 gap-6">
-            <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline tracking-wider">Katalog Digital Publik</CardTitle>
-                    <CardDescription>
-                        Tingkatkan pengalaman pelanggan dengan menu digital modern, interaktif, dan cerdas yang didukung oleh Chika AI.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="grid gap-6">
-                    <div className="space-y-3">
-                        <h3 className="font-semibold">Keunggulan & Manfaat</h3>
-                        <ul className="space-y-3">
-                            {features.map((feature, index) => (
-                                <li key={index} className="flex items-start gap-2">
-                                    <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
-                                    <span>{feature}</span>
-                                </li>
-                            ))}
-                        </ul>
-                    </div>
-                    <div className="flex flex-col items-stretch w-full gap-2">
-                        <QrCodeDialog catalogUrl={catalogUrl} storeName={activeStore.name}>
-                            <Button disabled={!isSubscriptionActive} className="w-full">
-                                <QrCodeIcon className="mr-2 h-4 w-4" />
-                                Tampilkan QR Code Meja
-                            </Button>
-                        </QrCodeDialog>
-                        <Button variant="outline" onClick={handleOpenCatalog} disabled={!isSubscriptionActive} className="w-full">
-                            <ExternalLink className="mr-2 h-4 w-4" />
-                            Pratinjau Katalog Digital
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline tracking-wider">Katalog Digital Publik</CardTitle>
+                <CardDescription>
+                    Tingkatkan pengalaman pelanggan dengan menu digital modern, interaktif, dan cerdas yang didukung oleh Chika AI.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-6">
+                <div className="space-y-3">
+                    <h3 className="font-semibold">Keunggulan & Manfaat</h3>
+                    <ul className="space-y-3">
+                        {features.map((feature, index) => (
+                            <li key={index} className="flex items-start gap-2">
+                                <CheckCircle className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+                                <span>{feature}</span>
+                            </li>
+                        ))}
+                    </ul>
+                </div>
+                <div className="flex flex-col items-stretch w-full gap-2">
+                    <QrCodeDialog catalogUrl={catalogUrl} storeName={activeStore.name}>
+                        <Button disabled={!isSubscriptionActive} className="w-full">
+                            <QrCodeIcon className="mr-2 h-4 w-4" />
+                            Tampilkan QR Code Meja
                         </Button>
-                         {!isSubscriptionActive && (
-                            <p className="text-xs text-muted-foreground mt-2 text-center">Aktifkan langganan untuk memakai fitur ini.</p>
-                        )}
-                    </div>
-                </CardContent>
-            </Card>
-             <Card>
-                <CardHeader>
-                    <CardTitle className="font-headline tracking-wider">Gambar QRIS</CardTitle>
-                    <CardDescription>
-                        Unggah gambar QRIS Anda untuk ditampilkan sebagai opsi pembayaran di katalog digital.
-                    </CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                     <div 
-                        className="flex justify-center items-center w-full h-48 rounded-md border-2 border-dashed border-input cursor-pointer bg-secondary/50 hover:bg-secondary/70"
-                        onClick={() => qrisFileInputRef.current?.click()}
-                    >
-                        {qrisImagePreview ? (
-                            <Image src={qrisImagePreview} alt="Pratinjau QRIS" width={192} height={192} className="h-full w-full object-contain rounded-md" unoptimized/>
-                        ) : (
-                            <div className="text-center text-muted-foreground p-4">
-                                <ImageIcon className="mx-auto h-10 w-10" />
-                                <p>Klik untuk memilih gambar QRIS</p>
-                            </div>
-                        )}
-                    </div>
-                    <Input 
-                        ref={qrisFileInputRef}
-                        type="file" 
-                        className="hidden" 
-                        onChange={handleQrisFileChange}
-                        accept="image/png, image/jpeg, image/webp"
-                    />
-                     <Button onClick={handleSaveQris} disabled={isSavingQris || !qrisImageFile} className="w-full">
-                        {isSavingQris ? <Loader className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
-                        Simpan Gambar QRIS
+                    </QrCodeDialog>
+                    <Button variant="outline" onClick={handleOpenCatalog} disabled={!isSubscriptionActive} className="w-full">
+                        <ExternalLink className="mr-2 h-4 w-4" />
+                        Pratinjau Katalog Digital
                     </Button>
-                </CardContent>
-            </Card>
-        </div>
+                        {!isSubscriptionActive && (
+                        <p className="text-xs text-muted-foreground mt-2 text-center">Aktifkan langganan untuk memakai fitur ini.</p>
+                    )}
+                </div>
+            </CardContent>
+        </Card>
+        <Card>
+            <CardHeader>
+                <CardTitle className="font-headline tracking-wider">Gambar QRIS</CardTitle>
+                <CardDescription>
+                    Unggah gambar QRIS Anda untuk ditampilkan sebagai opsi pembayaran di katalog digital.
+                </CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+                    <div 
+                    className="flex justify-center items-center w-full h-48 rounded-md border-2 border-dashed border-input cursor-pointer bg-secondary/50 hover:bg-secondary/70"
+                    onClick={() => qrisFileInputRef.current?.click()}
+                >
+                    {qrisImagePreview ? (
+                        <Image src={qrisImagePreview} alt="Pratinjau QRIS" width={192} height={192} className="h-full w-full object-contain rounded-md" unoptimized/>
+                    ) : (
+                        <div className="text-center text-muted-foreground p-4">
+                            <ImageIcon className="mx-auto h-10 w-10" />
+                            <p>Klik untuk memilih gambar QRIS</p>
+                        </div>
+                    )}
+                </div>
+                <Input 
+                    ref={qrisFileInputRef}
+                    type="file" 
+                    className="hidden" 
+                    onChange={handleQrisFileChange}
+                    accept="image/png, image/jpeg, image/webp"
+                />
+                    <Button onClick={handleSaveQris} disabled={isSavingQris || !qrisImageFile} className="w-full">
+                    {isSavingQris ? <Loader className="mr-2 h-4 w-4 animate-spin"/> : <Save className="mr-2 h-4 w-4" />}
+                    Simpan Gambar QRIS
+                </Button>
+            </CardContent>
+        </Card>
 
         <Card>
              <CardHeader className="text-center">
