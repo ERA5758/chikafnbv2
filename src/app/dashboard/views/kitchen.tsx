@@ -1,5 +1,4 @@
 
-
 'use client';
 
 import * as React from 'react';
@@ -10,7 +9,7 @@ import { useToast } from '@/hooks/use-toast';
 import { formatDistanceToNow } from 'date-fns';
 import { id as idLocale } from 'date-fns/locale';
 import { Button } from '@/components/ui/button';
-import { CheckCircle, ChefHat, Loader, MessageSquare, Printer } from 'lucide-react';
+import { CheckCircle, ChefHat, Loader, MessageSquare, Printer, CreditCard } from 'lucide-react';
 import { doc, writeBatch, getDoc } from 'firebase/firestore';
 import { db } from '@/lib/firebase';
 import { useAuth } from '@/contexts/auth-context';
@@ -20,9 +19,10 @@ import type { Transaction } from '@/lib/types';
 type KitchenProps = {
     onFollowUpRequest: (transaction: Transaction) => void;
     onPrintStickerRequest: (transaction: Transaction) => void;
+    onPaymentRequest: (transaction: Transaction) => void;
 };
 
-export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest }: KitchenProps) {
+export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest, onPaymentRequest }: KitchenProps) {
     const { dashboardData } = useDashboard();
     const { activeStore, currentUser } = useAuth();
     const { transactions } = dashboardData;
@@ -127,6 +127,16 @@ export default function Kitchen({ onFollowUpRequest, onPrintStickerRequest }: Ki
                                         <Printer className="mr-2 h-4 w-4" />
                                         Cetak Stiker
                                     </Button>
+                                    {order.paymentMethod === 'Belum Dibayar' && (currentUser?.role === 'admin' || currentUser?.role === 'cashier') && (
+                                        <Button
+                                            variant="secondary"
+                                            className="w-full"
+                                            onClick={() => onPaymentRequest(order)}
+                                        >
+                                            <CreditCard className="mr-2 h-4 w-4" />
+                                            Proses Pembayaran
+                                        </Button>
+                                    )}
                                     {(currentUser?.role === 'admin' || currentUser?.role === 'cashier') && (
                                         <Button 
                                             className="w-full" 

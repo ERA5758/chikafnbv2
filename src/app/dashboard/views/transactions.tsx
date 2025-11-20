@@ -1,3 +1,4 @@
+
 'use client';
 
 import * as React from 'react';
@@ -65,6 +66,7 @@ export function TransactionDetailsDialog({
     users,
     onFollowUpRequest,
     onPrintRequest,
+    onPaymentRequest,
 }: { 
     transaction: Transaction; 
     open: boolean; 
@@ -72,6 +74,7 @@ export function TransactionDetailsDialog({
     users: User[];
     onFollowUpRequest: (transaction: Transaction) => void;
     onPrintRequest: (transaction: Transaction) => void;
+    onPaymentRequest: (transaction: Transaction) => void;
 }) {
     if (!transaction) return null;
 
@@ -81,29 +84,10 @@ export function TransactionDetailsDialog({
     
     const [isActionLoading, setIsActionLoading] = React.useState(false);
     const [transactionToRefund, setTransactionToRefund] = React.useState<Transaction | null>(null);
-    const [transactionToPay, setTransactionToPay] = React.useState<Transaction | null>(null);
-    const [paymentMethodForDialog, setPaymentMethodForDialog] = React.useState<'Cash' | 'Card' | 'QRIS'>('Cash');
-
+    
     const staff = (users || []).find(u => u.id === transaction.staffId);
     const isRefundable = transaction.status !== 'Dibatalkan';
     const { feeSettings } = dashboardData;
-    
-    const handleProcessPayment = async () => {
-        if (!transactionToPay || !activeStore) return;
-        setIsActionLoading(true);
-        try {
-            const transactionRef = doc(db, 'stores', activeStore.id, 'transactions', transactionToPay.id);
-            await updateDoc(transactionRef, { status: 'Selesai Dibayar', paymentMethod: paymentMethodForDialog });
-            toast({ title: "Pembayaran Berhasil", description: `Pembayaran untuk nota #${String(transactionToPay.receiptNumber).padStart(6, '0')} telah diterima.` });
-            refreshData();
-            setTransactionToPay(null);
-            onOpenChange(false);
-        } catch (error) {
-            toast({ variant: "destructive", title: "Gagal Memproses Pembayaran", description: (error as Error).message });
-        } finally {
-            setIsActionLoading(false);
-        }
-    };
       
     const handleRefund = async () => {
         if (!transactionToRefund || !activeStore || !feeSettings) return;
@@ -224,7 +208,7 @@ export function TransactionDetailsDialog({
                         </Button>
                         <div className="flex items-center gap-1">
                           {transaction.paymentMethod === 'Belum Dibayar' && (
-                              <Button variant="default" size="sm" className="h-8 gap-2" onClick={() => setTransactionToPay(transaction)} disabled={isActionLoading}>
+                              <Button variant="default" size="sm" className="h-8 gap-2" onClick={() => onPaymentRequest(transaction)} disabled={isActionLoading}>
                                   {isActionLoading ? <Loader className="h-4 w-4 animate-spin"/> : <CreditCard className="h-4 w-4"/>}
                                   Proses Pembayaran
                               </Button>
@@ -258,36 +242,6 @@ export function TransactionDetailsDialog({
               </AlertDialogFooter>
             </AlertDialogContent>
         </AlertDialog>
-
-        <Dialog open={!!transactionToPay} onOpenChange={() => setTransactionToPay(null)}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>Proses Pembayaran</DialogTitle>
-                    <DialogDescription>Pilih metode pembayaran untuk transaksi nota #{String(transactionToPay?.receiptNumber).padStart(6, '0')}.</DialogDescription>
-                </DialogHeader>
-                <div className="py-4 space-y-4">
-                    <div className="text-center">
-                        <p className="text-muted-foreground">Total Tagihan</p>
-                        <p className="text-3xl font-bold">Rp {transactionToPay?.totalAmount.toLocaleString('id-ID')}</p>
-                    </div>
-                    <Select value={paymentMethodForDialog} onValueChange={(value: 'Cash' | 'Card' | 'QRIS') => setPaymentMethodForDialog(value)}>
-                        <SelectTrigger><SelectValue placeholder="Pilih Metode Pembayaran"/></SelectTrigger>
-                        <SelectContent>
-                            <SelectItem value="Cash">Tunai</SelectItem>
-                            <SelectItem value="Card">Kartu</SelectItem>
-                            <SelectItem value="QRIS">QRIS</SelectItem>
-                        </SelectContent>
-                    </Select>
-                </div>
-                <DialogFooter>
-                    <Button variant="ghost" onClick={() => setTransactionToPay(null)}>Batal</Button>
-                    <Button onClick={handleProcessPayment} disabled={isActionLoading}>
-                        {isActionLoading && <Loader className="mr-2 h-4 w-4 animate-spin"/>}
-                        Konfirmasi Pembayaran
-                    </Button>
-                </DialogFooter>
-            </DialogContent>
-        </Dialog>
         </>
     );
 }
