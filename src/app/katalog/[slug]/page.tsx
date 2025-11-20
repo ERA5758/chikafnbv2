@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -8,7 +9,7 @@ import { Alert, AlertDescription, AlertTitle } from '@/components/ui/alert';
 import Image from 'next/image';
 import { ChefHat, PackageX, MessageCircle, Sparkles, Send, Loader, Gift, ShoppingCart, PlusCircle, MinusCircle, XCircle, LogIn, UserCircle, LogOut, Crown, Coins, Receipt, Percent, HandCoins, MessageSquare } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { Dialog, DialogContent, DialogFooter, DialogHeader, DialogTitle, DialogDescription } from '@/components/ui/dialog';
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetFooter, SheetTrigger, SheetClose } from '@/components/ui/sheet';
 import { Input } from '@/components/ui/input';
 import { ScrollArea } from '@/components/ui/scroll-area';
@@ -290,7 +291,11 @@ function ProductDetailDialog({ product, open, onOpenChange, onAddToCart }: { pro
     if (!product) return null;
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="max-w-md">
+            <DialogContent className="max-w-md p-0">
+                <DialogHeader className="sr-only">
+                    <DialogTitle>{product.name}</DialogTitle>
+                    <DialogDescription>{product.description || `Detail untuk ${product.name}`}</DialogDescription>
+                </DialogHeader>
                 <Card className="border-none shadow-none">
                     <div className="relative aspect-square">
                         <Image src={product.imageUrl} alt={product.name} fill className="object-cover rounded-t-lg" unoptimized/>
