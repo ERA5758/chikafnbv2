@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -57,6 +58,7 @@ import { Tooltip, TooltipContent, TooltipProvider } from '@/components/ui/toolti
 type TransactionsProps = {
     onPrintRequest: (transaction: Transaction) => void;
     onDetailRequest: (transaction: Transaction) => void;
+    onPaymentRequest: (transaction: Transaction) => void;
 };
 
 export function TransactionDetailsDialog({ 
@@ -248,7 +250,7 @@ export function TransactionDetailsDialog({
 
 type StatusFilter = 'Semua' | 'Diproses' | 'Selesai' | 'Belum Dibayar' | 'Dibatalkan';
 
-export default function Transactions({ onDetailRequest, onPrintRequest }: TransactionsProps) {
+export default function Transactions({ onDetailRequest, onPrintRequest, onPaymentRequest }: TransactionsProps) {
   const { dashboardData, isLoading } = useDashboard();
   const { transactions } = dashboardData || {};
   
@@ -272,7 +274,7 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
     
     return dateFiltered.filter(t => {
         if (statusFilter === 'Diproses') return t.status === 'Diproses';
-        if (statusFilter === 'Selesai') return t.status === 'Selesai' || t.status === 'Selesai Dibayar';
+        if (statusFilter === 'Selesai') return t.status === 'Selesai';
         if (statusFilter === 'Belum Dibayar') return t.paymentMethod === 'Belum Dibayar' && t.status !== 'Dibatalkan';
         if (statusFilter === 'Dibatalkan') return t.status === 'Dibatalkan';
         return false;
@@ -366,10 +368,10 @@ export default function Transactions({ onDetailRequest, onPrintRequest }: Transa
                         <TableCell className="hidden md:table-cell">{transaction.paymentMethod}</TableCell>
                         <TableCell className="text-center">
                           <Badge 
-                            variant={transaction.status === 'Selesai' || transaction.status === 'Selesai Dibayar' ? 'secondary' : 'default'}
+                            variant={transaction.status === 'Selesai' ? 'secondary' : 'default'}
                             className={cn(
                                 transaction.status === 'Diproses' && 'bg-amber-500/20 text-amber-800 border-amber-500/50',
-                                (transaction.status === 'Selesai' || transaction.status === 'Selesai Dibayar') && 'bg-green-500/20 text-green-800 border-green-500/50',
+                                transaction.status === 'Selesai' && 'bg-green-500/20 text-green-800 border-green-500/50',
                                 transaction.paymentMethod === 'Belum Dibayar' && transaction.status !== 'Dibatalkan' && 'bg-orange-500/20 text-orange-800 border-orange-500/50',
                                 transaction.status === 'Dibatalkan' && 'bg-red-500/20 text-red-800 border-red-500/50',
                             )}

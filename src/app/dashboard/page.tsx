@@ -1,4 +1,5 @@
 
+
 'use client';
 
 import * as React from 'react';
@@ -111,7 +112,7 @@ function DashboardContent() {
     setIsPaymentProcessing(true);
     try {
         const transactionRef = doc(db, 'stores', activeStore.id, 'transactions', transactionToPay.id);
-        await updateDoc(transactionRef, { status: 'Selesai Dibayar', paymentMethod: paymentMethodForDialog });
+        await updateDoc(transactionRef, { status: 'Selesai', paymentMethod: paymentMethodForDialog });
         toast({ title: "Pembayaran Berhasil", description: `Pembayaran untuk nota #${String(transactionToPay.receiptNumber).padStart(6, '0')} telah diterima.` });
         refreshData();
         setTransactionToPay(null);

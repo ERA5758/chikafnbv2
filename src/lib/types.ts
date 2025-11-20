@@ -102,7 +102,7 @@ export type Customer = {
   avatarUrl: string;
 };
 
-export type TransactionStatus = 'Diproses' | 'Selesai' | 'Selesai Dibayar' | 'Belum Dibayar' | 'Dibatalkan';
+export type TransactionStatus = 'Diproses' | 'Siap Diambil' | 'Selesai' | 'Belum Dibayar' | 'Dibatalkan';
 
 export type Transaction = {
   id: string;

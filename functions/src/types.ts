@@ -1,5 +1,6 @@
 
-export type TransactionStatus = 'Diproses' | 'Siap Diambil' | 'Selesai' | 'Selesai Dibayar' | 'Belum Dibayar' | 'Dibatalkan';
+
+export type TransactionStatus = 'Diproses' | 'Siap Diambil' | 'Selesai' | 'Belum Dibayar' | 'Dibatalkan';
 
 export type CartItem = {
     productId: string;
