@@ -34,6 +34,7 @@ import Image from 'next/image';
 import { Textarea } from '../ui/textarea';
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Label } from '@/components/ui/label';
+import { PlaceHolderImages } from '@/lib/placeholder-images';
 
 const FormSchema = z.object({
   name: z.string().min(2, {
@@ -124,10 +125,6 @@ export function AddProductForm({ setDialogOpen, userRole, onProductAdded, active
 
 
   async function onSubmit(data: z.infer<typeof FormSchema>) {
-    if (!imageFile) {
-        toast({ variant: 'destructive', title: 'Gambar Produk Wajib', description: 'Silakan pilih gambar untuk produk.'});
-        return;
-    }
     setIsLoading(true);
 
     try {
@@ -136,15 +133,24 @@ export function AddProductForm({ setDialogOpen, userRole, onProductAdded, active
             throw new Error("Sesi autentikasi tidak valid. Silakan login ulang.");
         }
 
+        let finalImageUrl = '';
+        let imageHint = '';
+        
+        if (imageFile) {
+            const fileExtension = imageFile.name.split('.').pop();
+            const safeFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
+
+            const imageRef = ref(storage, `products/${activeStore.id}/${safeFileName}`);
+            await uploadBytes(imageRef, imageFile);
+            finalImageUrl = await getDownloadURL(imageRef);
+        } else {
+            const placeholder = PlaceHolderImages[Math.floor(Math.random() * PlaceHolderImages.length)];
+            finalImageUrl = placeholder.imageUrl;
+            imageHint = placeholder.imageHint;
+        }
+
         const costPrice = !isAdmin ? data.price : data.costPrice;
     
-        const fileExtension = imageFile.name.split('.').pop();
-        const safeFileName = `${Date.now()}-${Math.random().toString(36).substring(2)}.${fileExtension}`;
-
-        const imageRef = ref(storage, `products/${activeStore.id}/${safeFileName}`);
-        await uploadBytes(imageRef, imageFile);
-        const imageUrl = await getDownloadURL(imageRef);
-
         await addDoc(collection(db, 'stores', activeStore.id, 'products'), {
             name: data.name,
             category: data.category,
@@ -153,8 +159,8 @@ export function AddProductForm({ setDialogOpen, userRole, onProductAdded, active
             costPrice: costPrice,
             stock: data.stock,
             supplierId: '',
-            imageUrl: imageUrl,
-            imageHint: '',
+            imageUrl: finalImageUrl,
+            imageHint: imageHint,
             attributes: { 
                 brand: data.brand,
                 barcode: data.barcode || '',
