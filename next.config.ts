@@ -52,18 +52,7 @@ const nextConfig: NextConfig = {
   // Core next settings
   output: 'standalone',
 
-  // Ensure ALL server-only packages are treated as externals for server components
-  serverExternalPackages: [
-    'firebase-admin',
-    'genkit',
-    '@genkit-ai/core',
-    'genkitx-openai',
-    '@genkit-ai/firebase',
-    '@genkit-ai/next',
-    '@genkit-ai/google-genai',
-    'zod',
-  ],
-
+  // Tell Next.js to use the webpack bundler and silence the Turbopack warning.
   webpack: (config, { isServer }) => {
     if (!isServer) {
       // Prevent server-only packages from being bundled into client builds
@@ -85,6 +74,21 @@ const nextConfig: NextConfig = {
     }
     return config;
   },
+
+  // Ensure ALL server-only packages are treated as externals for server components
+  serverExternalPackages: [
+    'firebase-admin',
+    'genkit',
+    '@genkit-ai/core',
+    'genkitx-openai',
+    '@genkit-ai/firebase',
+    '@genkit-ai/next',
+    '@genkit-ai/google-genai',
+    'zod',
+  ],
+
+  // Adding an empty turbopack config to silence the webpack warning
+  turbopack: {},
 };
 
 export default nextConfig;
